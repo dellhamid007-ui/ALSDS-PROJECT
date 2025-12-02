@@ -52,12 +52,18 @@ float percentUppercase(char text[]){
 }
 
 void displayTextStats(char text[]){
-    printf("The number of Uppercase letters: %d\nThe number of Lowercase letters: %d\nThe number of Digits: %d\nThe text is: %d characters long\nUppercase Letters percentage:%.2f%%",countUppercase(text),countLowercase(text),countDigits(text),textLength(text),percentUppercase(text));
+    printf("The number of Uppercase letters: %d\nThe number of Lowercase letters: %d\nThe number of Digits: %d\nThe text is: %d characters long\nUppercase Letters percentage:%.2f%%\n",countUppercase(text),countLowercase(text),countDigits(text),textLength(text),percentUppercase(text));
+}
+
+void showSecurityTips(){
+    printf("Security tips:\n1-Use a mix of uppercase letters, lowercase letters, digits, and special characters in your password.\n2-Regularly change your password.\n3-NEVER share your password with others.\n4-Beware of scams and phishing sites.");
 }
 
 int main(){
     char text[] = "Th1s 1s A TeSt STrinG";
 
     displayTextStats(text);
+
+    showSecurityTips();
 
 }

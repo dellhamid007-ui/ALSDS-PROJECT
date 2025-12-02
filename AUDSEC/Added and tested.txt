@@ -1,0 +1,9 @@
+Functions Done: 7/20
+
+1-countUppercase
+2-countLowercase
+3-countDigits
+4-percentUppercase
+5-textLength
+6-displayTextStats
+7-showSecurityTips
