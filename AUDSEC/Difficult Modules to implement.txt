@@ -1,0 +1,28 @@
+1-checkEmailFormat:
+
+established rules:
+Exactly 1 @ 
+@ cannot be the first character
+at least one .
+. cannot be directly after @
+. cannot be the last character
+no spaces
+no special characters
+
+basic format:
+user@website.domain
+
+
+2-veryStrongPassword:
+
+criteria:
+base score(0.3)
+-more than 8 characters long (+0.01 for every additional character)
+-usage of lowercase AND uppercase (
+-usage of special characters
+
+SCRAPPED
+
+reused established criteria for passwordScore()
+
+veryStrongPassword is now determined by value returned by passwordScore() (>0.8 password score

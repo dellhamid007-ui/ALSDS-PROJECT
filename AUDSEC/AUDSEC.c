@@ -59,6 +59,16 @@ void showSecurityTips(){
     printf("Security tips:\n1-Use a mix of uppercase letters, lowercase letters, digits, and special characters in your password.\n2-Regularly change your password.\n3-NEVER share your password with others.\n4-Beware of scams and phishing sites.");
 }
 
+int passwordScore(char pass[]){
+    float basescore = 0.3;
+    int len = textLength(pass);
+    float upc = percentUppercase(pass);
+    int SpecChar
+    for(i=)
+
+    
+}
+
 int main(){
     char text[] = "Th1s 1s A TeSt STrinG";
 
