@@ -16,13 +16,13 @@ user@website.domain
 2-veryStrongPassword:
 
 criteria:
-base score(0.3)
--more than 8 characters long (+0.01 for every additional character)
--usage of lowercase AND uppercase (
--usage of special characters
+base score(30)
+-more than 8 characters long (+1 for every additional character)
+-usage of lowercase AND uppercase ( gets percentageUppercase, the closer to 50% the better) (capped at +40 at 50 percent);
+-usage of special characters (@ / \ _ 0-9 ~ ! ? # $ & *)(+0.05 per character) (had to use a lookup table, and use unsigned char to avoid negative ASCII values)
 
 SCRAPPED
 
 reused established criteria for passwordScore()
 
-veryStrongPassword is now determined by value returned by passwordScore() (>0.8 password score
+veryStrongPassword is now determined by value returned by passwordScore() (>0.9 password score

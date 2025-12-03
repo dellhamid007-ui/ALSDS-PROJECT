@@ -59,21 +59,47 @@ void showSecurityTips(){
     printf("Security tips:\n1-Use a mix of uppercase letters, lowercase letters, digits, and special characters in your password.\n2-Regularly change your password.\n3-NEVER share your password with others.\n4-Beware of scams and phishing sites.");
 }
 
-int passwordScore(char pass[]){
-    float basescore = 0.3;
-    int len = textLength(pass);
-    float upc = percentUppercase(pass);
-    int SpecChar
-    for(i=)
 
-    
+int getSpecCharNumber(char pass[]){
+    int counter = 0;
+    //establishing usable special characters
+    char SpecialList[] = "0123456789@!?#$&*_/~";
+    //creating a lookup table
+    int lookup[256] ={0};
+
+    for (int i =0; SpecialList[i] !='\0'; i++){
+        unsigned char c = (unsigned char)SpecialList[i];
+        lookup[c] =1;
+    }
+
+    //counting special characters
+    for(int i =0; pass[i] !='\0'; i++){
+        unsigned char c = (unsigned char)pass[i];
+        if(lookup[c]){
+            counter++;
+        }
+    }
+    return counter;
+
+}
+
+int passwordScore(char pass[]){   //score is capped at 100, passwords of score 60 and above are strong, passwords of score 90 are very strong
+    float basescore = 30; //constant base score for all passwords
+    int len = textLength(pass); //used to count extra score from length
+    float upc = percentUppercase(pass);
+    int SpecChar = getSpecCharNumber(pass);
+
+    int _bonus = (40 - 0.016*(upc - 50)*(upc- 50)) + (SpecChar *5) + (len - 8) ;   
+
+    int finalscore = basescore + _bonus;
+
+     if (finalscore <= 100) return finalscore;
+     else return 100; // to prevent score from going above max
 }
 
 int main(){
     char text[] = "Th1s 1s A TeSt STrinG";
 
-    displayTextStats(text);
-
-    showSecurityTips();
+    printf("%d",passwordScore(""));
 
 }
