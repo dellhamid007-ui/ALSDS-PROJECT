@@ -72,7 +72,7 @@ void showSecurityTips(){
 int getSpecCharNumber(char pass[]){
     int counter = 0;
     //establishing usable special characters
-    char SpecialList[] = "0123456789@!?#$&*_/~";
+    char SpecialList[] = "@!?#$&*_/~";
     //creating a lookup table
     int lookup[256] ={0};
 
@@ -130,6 +130,59 @@ int countStrongUsers(struct User users[], int n){
     return count;
 }
 
+void top3Passwords(struct User users[], int n){ //sorts only first 3 users, then checks if others make it to the top 3
+    int top1 = 0;
+    int top2 = 1;
+    int top3 = 2;
+
+    int top1_score = passwordScore(users[0].password);
+    int top2_score = passwordScore(users[1].password);
+    int top3_score = passwordScore(users[2].password);
+
+    if(top2_score > top1_score){
+        int tmp_index = top1;
+        top1 = top2;
+        top2 = tmp_index;
+
+        int tmp_score = top1_score;
+        top1_score = top2_score;
+        top2_score = tmp_score;
+    }
+
+    if (top3_score > top1_score){
+        top3 = top2;
+        top2 = top1;
+        top1 = 2;
+    }
+    else if(top3_score > top2_score){
+        top3 = top2;
+        top2 = 2;
+    }
+
+    for(int i =3; i<n; i++){
+        int score = passwordScore(users[i].password);
+
+        if(score> passwordScore(users[top1].password)){
+            top3 = top2;
+            top2 = top1;
+            top1 = i;
+        }
+        else if(score> passwordScore(users[top2].password)){
+            top3 = top2;
+            top2 = i;
+        }
+        else if(score> passwordScore(users[top3].password)){
+            top3 = i;
+        }
+    }
+
+    printf("Top 3 Passwords:\n");
+    printf("1-%s Score: %d\n", users[top1].password, passwordScore(users[top1].password));
+    printf("2-%s Score: %d\n", users[top2].password, passwordScore(users[top2].password));
+    printf("3-%s Score: %d\n", users[top3].password, passwordScore(users[top3].password));
+
+
+}
 
 int RNG(){              //Random Number Generator using LCG and time.h
     static unsigned int seed = 0;
@@ -234,5 +287,18 @@ int checkEmailFormat(char email[]){ //email rules are included in the .txt file
 
 int main(){
 
-    printf("%d",checkEmailFormat("dell.hamid0..07@gmail.com"));
+    struct User users[5];
+
+    strcpy(users[0].password,"a");
+    strcpy(users[1].password,"ASdQKZAKJF");
+    strcpy(users[2].password,"qdksa@@@)");
+    strcpy(users[3].password,"sad");
+    strcpy(users[4].password,"12345678");
+    
+    for(int i =0; i<5;i++){
+        printf("%s %d\n",users[i].password, passwordScore(users[i].password));
+    }
+
+    top3Passwords(users, 5);
+
 }

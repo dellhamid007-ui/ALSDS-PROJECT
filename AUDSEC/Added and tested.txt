@@ -1,4 +1,4 @@
-Functions Done: 13/20
+Functions Done: 14/20
 
 1-countUppercase()
 2-countLowercase()
@@ -11,6 +11,8 @@ Functions Done: 13/20
 9-veryStrongPassword()
 10-generateKey()
 11-isHexKey()
-12-generateRandomPassword()
-13-averageScore()
-14-countStrongUsers()
+12-generateHexKey()
+13-generateRandomPassword()
+14-averageScore()
+15-countStrongUsers()
+16-checkEmailFormat() 
