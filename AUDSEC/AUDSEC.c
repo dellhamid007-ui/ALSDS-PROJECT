@@ -2,6 +2,14 @@
 #include <stdio.h>
 #include <string.h>
 
+struct User{
+    char name[20];
+    char password[20];
+    int role; //0: User, 1: Admin
+    int state;  //0: Active, 2:Blocked
+};
+
+
 int textLength(char text[]){
     int len = 0;
 
@@ -111,15 +119,24 @@ int RNG(){              //Random Number Generator using LCG and time.h
         seed = time(NULL); //returns current Unix Epoch time
        }   
     
-    seed = seed * 21354538 + 1236045; //Arbitrary numbers, not truly random but too chaotic to predict
+    seed = seed * 1103515245 + 12345; //Arbitrary numbers, not truly random but too chaotic to predict
 
     return seed;
 }
 
-void generateKey(int length, char key[]){
+void generateKey(int length, char key[]){   //Must be maxed at 30 characters due to weak RNG
     char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for(int i =0; i<length;i++){
         int index = (unsigned int)RNG() % 36;
+        key[i] = characters[index];
+    }
+    key[length+1] = '\0'; //Null Terminator
+}
+
+void generateHexKey(int length, char key[]){    
+    char characters[] = "0123456789ABCDEF";
+    for(int i =0; i<length;i++){
+        int index = (unsigned int)RNG() % 16;
         key[i] = characters[index];
     }
     key[length+1] = '\0'; //Null Terminator
@@ -156,12 +173,11 @@ void generateRandomPassword(int length, char pass[]){  //Must be maxed at 30 cha
 
 int main(){
 
-    int length = 30;
+    int length = 100;
     char key[length+1];
     char pass[length+1];
     
-    generateRandomPassword(length,pass);
-
-    printf("%s",pass);
+    generateRandomPassword(length, key);
+    printf("%s",key);
 
 }
