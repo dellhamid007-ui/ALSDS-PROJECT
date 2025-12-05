@@ -1,3 +1,4 @@
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -89,7 +90,7 @@ int passwordScore(char pass[]){   //score is capped at 100, passwords of score 6
     float upc = percentUppercase(pass);
     int SpecChar = getSpecCharNumber(pass);
 
-    int _bonus = (40 - 0.016*(upc - 50)*(upc- 50)) + (SpecChar *5) + (len - 8) ;   
+    int _bonus = (40 - 0.016*(upc - 50)*(upc- 50)) + (SpecChar *10) + (len - 8) ;   
 
     int finalscore = basescore + _bonus;
 
@@ -97,9 +98,70 @@ int passwordScore(char pass[]){   //score is capped at 100, passwords of score 6
      else return 100; // to prevent score from going above max
 }
 
-int main(){
-    char text[] = "Th1s 1s A TeSt STrinG";
+int veryStrongPassword(char pass[]){
+    if (passwordScore(pass) >= 90) return 1;
+    else return 0;
+}
 
-    printf("%d",passwordScore(""));
+
+int RNG(){              //Random Number Generator using LCG and time.h
+    static unsigned int seed = 0;
+
+    if(seed == 0){
+        seed = time(NULL); //returns current Unix Epoch time
+       }   
+    
+    seed = seed * 21354538 + 1236045; //Arbitrary numbers, not truly random but too chaotic to predict
+
+    return seed;
+}
+
+void generateKey(int length, char key[]){
+    char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for(int i =0; i<length;i++){
+        int index = (unsigned int)RNG() % 36;
+        key[i] = characters[index];
+    }
+    key[length+1] = '\0'; //Null Terminator
+}
+
+int isHexKey(char key[]){       //Also uses a lookup table like getSpecCharNumber() //case sensitive
+    char HexList[] = "0123456789ABCDEF";
+
+    int lookup[256] ={0};
+
+    for (int i =0; HexList[i] !='\0'; i++){
+        unsigned char c = (unsigned char)HexList[i];
+        lookup[c] =1;
+    }
+
+    for(int i =0; key[i] !='\0'; i++){
+        unsigned char c = (unsigned char)key[i];
+        if(!lookup[c]){
+            return 0;
+        }
+    }
+    return 1;
+
+}
+
+void generateRandomPassword(int length, char pass[]){  //Must be maxed at 30 characters due to weak RNG
+    char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@!?#$&*_/~";
+    for(int i =0; i<length;i++){
+        int index = (unsigned int)RNG() % 72;
+        pass[i] = characters[index];
+    }
+    pass[length+1] = '\0'; //Null Terminator
+}
+
+int main(){
+
+    int length = 30;
+    char key[length+1];
+    char pass[length+1];
+    
+    generateRandomPassword(length,pass);
+
+    printf("%s",pass);
 
 }

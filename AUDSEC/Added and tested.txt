@@ -1,9 +1,13 @@
-Functions Done: 7/20
+Functions Done: 8/20
 
-1-countUppercase
-2-countLowercase
-3-countDigits
-4-percentUppercase
-5-textLength
-6-displayTextStats
-7-showSecurityTips
+1-countUppercase()
+2-countLowercase()
+3-countDigits()
+4-percentUppercase()
+5-textLength()
+6-displayTextStats()
+7-showSecurityTips()
+8-passwordScore()
+9-veryStrongPassword()
+10-generateKey()
+11-isHexKey()
