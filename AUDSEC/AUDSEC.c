@@ -98,7 +98,7 @@ int passwordScore(char pass[]){   //score is capped at 100, passwords of score 6
     float upc = percentUppercase(pass);
     int SpecChar = getSpecCharNumber(pass);
 
-    int _bonus = (40 - 0.016*(upc - 50)*(upc- 50)) + (SpecChar *10) + (len - 8) ;   
+    int _bonus = (25 - 0.01*(upc - 50)*(upc- 50)) + (SpecChar *5) + (len - 8) ;   
 
     int finalscore = basescore + _bonus;
 

@@ -17,9 +17,9 @@ user@website.domain
 
 criteria:
 base score(30)
--more than 8 characters long (+3 for every additional character)
--usage of lowercase AND uppercase ( gets percentageUppercase, the closer to 50% the better) (capped at +40 at 50 percent);
--usage of special characters (@ / \ _ 0-9 ~ ! ? # $ & *)(+10 per character) (had to use a lookup table, and use unsigned char to avoid negative ASCII values)
+-more than 8 characters long (+1 for every additional character)
+-usage of lowercase AND uppercase ( gets percentageUppercase, the closer to 50% the better) (capped at +25 at 50 percent);
+-usage of special characters (@ / \ _ 0-9 ~ ! ? # $ & *)(+5 per character) (had to use a lookup table, and use unsigned char to avoid negative ASCII values)
 
 SCRAPPED
 
