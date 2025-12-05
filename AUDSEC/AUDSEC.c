@@ -98,7 +98,7 @@ int passwordScore(char pass[]){   //score is capped at 100, passwords of score 6
     float upc = percentUppercase(pass);
     int SpecChar = getSpecCharNumber(pass);
 
-    int _bonus = (25 - 0.01*(upc - 50)*(upc- 50)) + (SpecChar *5) + (len - 8) ;   
+    int _bonus = (25 - 0.01*(upc - 50)*(upc- 50)) + (SpecChar *8) + (len - 8) ;   
 
     int finalscore = basescore + _bonus;
 
@@ -284,21 +284,42 @@ int checkEmailFormat(char email[]){ //email rules are included in the .txt file
 
 }
 
+void displaySecurityReport(struct User users[], int n){
+    float avg_score = averageScore(users,n);
+    int strong_users = countStrongUsers(users, n);
 
-int main(){
-
-    struct User users[5];
-
-    strcpy(users[0].password,"a");
-    strcpy(users[1].password,"ASdQKZAKJF");
-    strcpy(users[2].password,"qdksa@@@)");
-    strcpy(users[3].password,"sad");
-    strcpy(users[4].password,"12345678");
-    
-    for(int i =0; i<5;i++){
-        printf("%s %d\n",users[i].password, passwordScore(users[i].password));
+    printf("Total amount of users: %d\n", n);
+    printf("The average password Score: %.2f ",avg_score);
+    if(avg_score>=90) printf("(Very Strong)\n");
+    else {
+        if (avg_score >= 60) printf("(Strong)\n");  
+        else {
+            if(avg_score>= 40) printf("(Decent)\n");
+            else printf("(Weak)\n");
+        }
     }
 
-    top3Passwords(users, 5);
+    printf("The amount of users with strong passwords: %d\n",strong_users);
+    top3Passwords(users,n);
+}
 
+
+int main(){
+    struct User users[5];
+    char pass[20];
+
+    int user_count = sizeof(users)/ sizeof(users[0]);
+
+    generateRandomPassword(20,pass);
+    strcpy(users[0].password,pass);
+    generateRandomPassword(20,pass);
+    strcpy(users[1].password,pass);
+    generateRandomPassword(20,pass);
+    strcpy(users[2].password,pass);
+    generateRandomPassword(20,pass);
+    strcpy(users[3].password,pass);
+    generateRandomPassword(20,pass);
+    strcpy(users[4].password,pass);
+    
+    displaySecurityReport(users,user_count);
 }

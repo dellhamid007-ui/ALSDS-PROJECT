@@ -15,4 +15,6 @@ Functions Done: 14/20
 13-generateRandomPassword()
 14-averageScore()
 15-countStrongUsers()
-16-checkEmailFormat() 
+16-checkEmailFormat()
+17-top3Emails()
+18-displaySecurityReport()
