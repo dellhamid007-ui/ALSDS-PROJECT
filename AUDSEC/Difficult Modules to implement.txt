@@ -6,8 +6,9 @@ Exactly 1 @
 at least one .
 . cannot be directly after @
 . cannot be the last character
+no 2 consecutive .
 no spaces
-no special characters
+special characters allowed : . - _ + ' @
 
 basic format:
 user@website.domain

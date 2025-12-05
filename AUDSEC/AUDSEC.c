@@ -111,6 +111,25 @@ int veryStrongPassword(char pass[]){
     else return 0;
 }
 
+float averageScore(struct User users[],int n){
+    float sum = 0;
+    for(int i =0; i<n;i++){
+        sum += (float)passwordScore(users[i].password);
+    }
+
+    float avg = sum / n;
+    return avg;
+}
+
+int countStrongUsers(struct User users[], int n){
+    int count = 0;
+    for(int i = 0;i<n; i++){
+        if(passwordScore(users[i].password)>=60) count ++;
+    }
+
+    return count;
+}
+
 
 int RNG(){              //Random Number Generator using LCG and time.h
     static unsigned int seed = 0;
@@ -171,13 +190,49 @@ void generateRandomPassword(int length, char pass[]){  //Must be maxed at 30 cha
     pass[length+1] = '\0'; //Null Terminator
 }
 
+
+
+int checkEmailFormat(char email[]){ //email rules are included in the .txt file
+    int ATcounter = 0; //makes sure @ is not used twice
+
+    char AllowedCharacters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_@0123456789";
+    //creating a lookup table
+    int lookup[256] ={0};
+
+    for (int i =0; AllowedCharacters[i] !='\0'; i++){
+        unsigned char c = (unsigned char)AllowedCharacters[i];
+        lookup[c] =1;
+    }
+
+    if(email[0] == '@' || email[0] =='.') return 0;
+
+    for (int i = 0; email[i] != '\0'; i++)
+    {
+        unsigned char c = (unsigned char)email[i];
+        if(!lookup[c]) return 0;
+        else{
+            if (email[i] == '@') ATcounter++;
+            
+            if(email[i] == '.' && email[i+1] == '.') return 0;
+            if(email[i] == '.' && email[i+1] == '@') return 0;
+            if(email[i] == '@' && email[i+1] == '.') return 0;
+            if(email[i] == '.' && email[i+1] == '\0') return 0;
+            if(email[i] == '@' && email[i+1] == '\0') return 0;
+        }
+
+
+        
+    }
+    if (ATcounter != 1) return 0;
+    else return 1;
+
+
+    
+
+}
+
+
 int main(){
 
-    int length = 100;
-    char key[length+1];
-    char pass[length+1];
-    
-    generateRandomPassword(length, key);
-    printf("%s",key);
-
+    printf("%d",checkEmailFormat("dell.hamid0..07@gmail.com"));
 }

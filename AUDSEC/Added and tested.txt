@@ -1,4 +1,4 @@
-Functions Done: 8/20
+Functions Done: 13/20
 
 1-countUppercase()
 2-countLowercase()
@@ -11,3 +11,6 @@ Functions Done: 8/20
 9-veryStrongPassword()
 10-generateKey()
 11-isHexKey()
+12-generateRandomPassword()
+13-averageScore()
+14-countStrongUsers()
