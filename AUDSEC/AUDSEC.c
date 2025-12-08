@@ -284,6 +284,37 @@ int checkEmailFormat(char email[]){ //email rules are included in the .txt file
 
 }
 
+int checkLoginFormat(char name[]){
+     char AllowedCharacters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_0123456789";
+    //creating a lookup table
+    int lookup[256] ={0};
+
+    for (int i =0; AllowedCharacters[i] !='\0'; i++){
+        unsigned char c = (unsigned char)AllowedCharacters[i];
+        lookup[c] =1;
+    }
+
+    //checks if first character is a letter
+
+    char ForbiddenFirstCharacter[] = "0123456789-_";
+
+    for (int j =0; ForbiddenFirstCharacter[j] != '\0';j++){
+        if(name[0] == ForbiddenFirstCharacter[j]) return 0;
+    }
+
+
+    for (int i = 0; name[i] != '\0'; i++)
+    {
+        unsigned char c = (unsigned char)name[i];
+        if(!lookup[c]) return 0;    
+    }
+
+    if (textLength(name) <4 || textLength(name) > 20) return 0;
+    else return 1;
+
+
+}
+
 void displaySecurityReport(struct User users[], int n){
     float avg_score = averageScore(users,n);
     int strong_users = countStrongUsers(users, n);
@@ -305,21 +336,23 @@ void displaySecurityReport(struct User users[], int n){
 
 
 int main(){
-    struct User users[5];
-    char pass[20];
+    //struct User users[5];
+    //char pass[20];
 
-    int user_count = sizeof(users)/ sizeof(users[0]);
+    //int user_count = sizeof(users)/ sizeof(users[0]);
 
-    generateRandomPassword(20,pass);
-    strcpy(users[0].password,pass);
-    generateRandomPassword(20,pass);
-    strcpy(users[1].password,pass);
-    generateRandomPassword(20,pass);
-    strcpy(users[2].password,pass);
-    generateRandomPassword(20,pass);
-    strcpy(users[3].password,pass);
-    generateRandomPassword(20,pass);
-    strcpy(users[4].password,pass);
+    //generateRandomPassword(20,pass);
+    //strcpy(users[0].password,pass);
+    //generateRandomPassword(20,pass);
+    //strcpy(users[1].password,pass);
+    //generateRandomPassword(20,pass);
+    //strcpy(users[2].password,pass);
+    //generateRandomPassword(20,pass);
+    //strcpy(users[3].password,pass);
+    //generateRandomPassword(20,pass);
+    //strcpy(users[4].password,pass);
     
-    displaySecurityReport(users,user_count);
+    //displaySecurityReport(users,user_count);
+
+    printf("%d", checkLoginFormat("_asd213hasdhashd_-"));
 }

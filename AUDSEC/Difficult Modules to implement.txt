@@ -45,3 +45,12 @@ average score with average rating (weak, decent, strong, very strong)
 amount of users with strong passwords
 top 3 passwords
 
+
+criteria for checkLoginFormat()
+letters a-z A-Z
+0-9
+_
+-
+min 4 characters
+max 20 characters
+must start with letter
