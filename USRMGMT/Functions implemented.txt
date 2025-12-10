@@ -1,0 +1,5 @@
+1- initUsers()
+2- displayUsers()
+3- addUser()
+4- searchUser()
+5- deleteUser()

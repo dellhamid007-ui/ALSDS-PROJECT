@@ -1,0 +1,12 @@
+Had to recreate strcpy and strcmp, unfortunately, it uses pointers
+need to manually remove whitespaces from strings check trimWhiteSpace
+
+
+int searchUser(struct User users[], int n, char name[]){
+    for(int i = 0; i < n; i++) {
+        if (compareString(users[i].name, name) == 0) {
+            return i;  // Found at index i
+        }
+    }
+    return -1;  // Not found
+}

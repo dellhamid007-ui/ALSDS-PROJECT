@@ -1,6 +1,5 @@
 #include <time.h>
 #include <stdio.h>
-#include <string.h>
 
 struct User{
     char name[20];
@@ -196,35 +195,22 @@ int RNG(){              //Random Number Generator using LCG and time.h
     return seed;
 }
 
-void generateString(int length, char characters[],char word[],int mod){
-    for(int i =0; i<length;i++){
-        int index = (unsigned int)RNG() % mod;
-        word[i] = characters[index];
-    }
-    word[length+1] = '\0'; //Null Terminator
-}
-
 void generateKey(int length, char key[]){   //Must be maxed at 30 characters due to weak RNG
     char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    int mod = 36;
-
-    generateString(length,characters, key, mod);
-
+    for(int i =0; i<length;i++){
+        int index = (unsigned int)RNG() % 36;
+        key[i] = characters[index];
+    }
+    key[length+1] = '\0'; //Null Terminator
 }
 
 void generateHexKey(int length, char key[]){    
     char characters[] = "0123456789ABCDEF";
-    int mod = 16;
-
-    generateString(length,characters, key, mod);
-}
-
-void generateRandomPassword(int length, char pass[]){  //Must be maxed at 30 characters due to weak RNG
-    char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@!?#$&*_/~";
-    int mod = 72;
-    
-    generateString(length,characters, pass, mod);
-
+    for(int i =0; i<length;i++){
+        int index = (unsigned int)RNG() % 16;
+        key[i] = characters[index];
+    }
+    key[length+1] = '\0'; //Null Terminator
 }
 
 int isHexKey(char key[]){       //Also uses a lookup table like getSpecCharNumber() //case sensitive
@@ -245,6 +231,15 @@ int isHexKey(char key[]){       //Also uses a lookup table like getSpecCharNumbe
     }
     return 1;
 
+}
+
+void generateRandomPassword(int length, char pass[]){  //Must be maxed at 30 characters due to weak RNG
+    char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@!?#$&*_/~";
+    for(int i =0; i<length;i++){
+        int index = (unsigned int)RNG() % 72;
+        pass[i] = characters[index];
+    }
+    pass[length+1] = '\0'; //Null Terminator
 }
 
 
@@ -343,16 +338,6 @@ int main(){
     //struct User users[5];
     //char pass[20];
 
-    char pass[20];
-    char key[20];
-    char hexKey[20];
-
-    generateHexKey(20,hexKey);
-    generateKey(20,key);
-    generateRandomPassword(20,pass);
-
-    printf("%s\n%s\n%s\n%d",pass,hexKey,key,isHexKey(hexKey));
-
     //int user_count = sizeof(users)/ sizeof(users[0]);
 
     //generateRandomPassword(20,pass);
@@ -368,5 +353,5 @@ int main(){
     
     //displaySecurityReport(users,user_count);
 
-    printf("%d", checkLoginFormat("asd213hasdhashd_-"));
+    //printf("%d", checkLoginFormat("asd213hasdhashd_-"));
 }
