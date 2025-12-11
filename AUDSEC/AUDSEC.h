@@ -2,12 +2,7 @@
 #ifndef __AUDSEC_H__
 #define __AUDSEC_H__
 
-struct User{                                                    //Deleted <-> can be overwritten
-    char name[20];          //0 for deleted users
-    char password[20];      //0 for deleted users    
-    int role;               //0:user, 1:admin, 999:deleted 
-    int state;              //0:active 1:blocked 999:deleted
-};
+#include "../USRMGMT/USRMGMT.h"
 
 int textLength(char text[]);
 int countUppercase(char text[]);

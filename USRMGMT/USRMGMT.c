@@ -87,7 +87,7 @@ void deleteUser(struct User users[], int n, char *name){
     int usrIndex = searchUser(users, n, name) - 1;
     int found = 0;
 
-    if(usrIndex != -1){
+    if(compareString(name, users[usrIndex].name) == 0){
         stringModify(users[usrIndex].name, "0");
         stringModify(users[usrIndex].password, "0");
         users[usrIndex].role = 999;
@@ -108,37 +108,119 @@ void changePassword(struct User users[], int n, char name[]){
 }
 
 
-//int main(){
-    //char name[20];
-    //struct User users[5];
-    //stringModify(users[0].name,"User1");
-    //stringModify(users[1].name,"User2");
-    //stringModify(users[2].name,"User3");
-    //stringModify(users[3].name,"User4");
-    //stringModify(users[4].name,"User5");
+int checkLogin(struct User users[], int n, char name[], char pass[]){
+    int usrIndex = searchUser(users, n, name) - 1;
+    if (compareString(name, users[usrIndex].name) == 0){
+        if(compareString(pass, users[usrIndex].password) == 0){
+            return 1;
+        }
+        else return 0;
+    }
+    else return 0;
+}
 
-    //displayUsers(users,5);
+int strongPassword(char pass[]){
+    if (passwordScore(pass) >= 60) return 1;
+    else return 0;
+}
 
-  //  initUsers(users,5);
+void blockUser(struct User users[], int n, char name[]){
+    int usrIndex = searchUser(users, n, name) - 1;
 
+    if(users[usrIndex].role == 0){
+        if(users[usrIndex].state == 0){
+            users[usrIndex].state = 1;
+            printf("User Blocked Successfully\n");
+        }
+        else printf("User is already blocked or is deleted\n");
+    }
+    else printf("Cannot block an admin\n");
+}
 
-//    displayUsers(users,5);
+void unblockUser(struct User users[], int n, char name[]){
 
-    //addUser(users, 3);
-    //stringModify(users[4].name,"User5");
-    //users[4].role = 1;
+    int usrIndex = searchUser(users, n, name) - 1;
 
-    //displayUsers(users,5);
+    if(users[usrIndex].state == 1){
+            users[usrIndex].state = 0;
+            printf("User Unblocked Successfully\n");
+        }
+        else printf("User is not blocked\n");
+}
 
-    //deleteUser(users,5,name);
+void changeRole(struct User users[], int n, char name[], int role){
+
+    int usrIndex = searchUser(users, n, name) - 1;
+
+    if(users[usrIndex].role == role){
+        printf("User already has this role\n");
+    }
+    else{
+        users[usrIndex].role = role;
+        printf("Role was successfully changed\n");
+    }
+}
+
+void listAdmins(struct User users[], int n){
+    printf("ID- Admin Username\n");
+    for(int i =0; i<n ; i++){
+        if(users[i].role == 1){
+            printf("%d- %s\n", i+1, users[i].name);
+        }
+    }
+}
+
+int stringLength(char str[]){
+    int i;
+    for(i = 0; str[i] != '\0'; i++);
+
+    return i;
+}
+
+int containsUppercase(char str[]){
+    int i =0;
+    while(str[i] != '\0'){
+        if(str[i] >= 'A' && str[i] <= 'Z' ) return 1;
+        else i++;
+    }
+    return 0;
+}
+
+int containsLowercase(char str[]){
+    int i =0;
+    while(str[i] != '\0'){
+        if(str[i] >= 'a' && str[i] <= 'z' ) return 1;
+        else i++;
+    }
+    return 0;
+}
+
+int containsDigit(char str[]){
+    int i =0;
+    while(str[i] != '\0'){
+        if(str[i] >= '0' && str[i] <= '9' ) return 1;
+        else i++;
+    }
+    return 0;
+}
+
+int containsSymbol(char str[]){   //Reused the lookup table approach
     
-    //displayUsers(users,5);
+    char SpecialList[] = "`~!@#$%%^&*()_+=-|[{}]'/;:.>,<";
+    //creating a lookup table
+    int lookup[256] ={0};
 
-    //printf("%s\n", users[3].password);
+    for (int i =0; SpecialList[i] !='\0'; i++){
+        unsigned char c = (unsigned char)SpecialList[i];
+        lookup[c] =1;
+    }
 
-  //  changePassword(users, 5, "Midou");
+    int i =0;
+    while(str[i] != '\0'){
+        unsigned char c = str[i];
+        if(lookup[c]) return 1;
+        else i++;
+    }
+    return 0;
 
-  //  printf("%s\n", users[3].password);
-
-//}
-
+}

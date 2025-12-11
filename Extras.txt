@@ -1,0 +1,61 @@
+int main(){
+    struct User users[5];
+    char pass[20];
+
+
+    generateRandomPassword(20,pass);
+    stringModify(users[0].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[1].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[2].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[3].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[4].password,pass);
+    
+    displaySecurityReport(users,5);
+
+    printf("%d", checkLoginFormat("asd213hasdhashd_-"));
+} //AUDSEC
+
+
+int main(){
+    char name[20];
+    struct User users[5];
+    stringModify(users[0].name,"User1");
+    stringModify(users[1].name,"User2");
+    stringModify(users[2].name,"User3");
+    stringModify(users[3].name,"User4");
+    stringModify(users[4].name,"User5");
+
+    displayUsers(users,5);
+
+    initUsers(users,5);
+
+
+    displayUsers(users,5);
+
+    addUser(users, 3);
+    stringModify(users[4].name,"User5");
+    users[4].role = 0;
+
+    displayUsers(users,5);
+
+    deleteUser(users,5,name);
+    
+    displayUsers(users,5);
+
+    printf("%d\n", users[3].role);
+
+    changeRole(users, 5, "Midou", 1);
+
+    printf("%d\n", users[3].role);
+
+    listAdmins(users, 5);
+
+    printf("%d",stringLength("1234566"));
+
+    
+
+}

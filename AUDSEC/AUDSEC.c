@@ -328,25 +328,3 @@ void displaySecurityReport(struct User users[], int n){
     printf("The amount of users with strong passwords: %d\n",strong_users);
     top3Passwords(users,n);
 }
-
-
-int main(){
-    struct User users[5];
-    char pass[20];
-
-
-    generateRandomPassword(20,pass);
-    stringModify(users[0].password,pass);
-    generateRandomPassword(20,pass);
-    stringModify(users[1].password,pass);
-    generateRandomPassword(20,pass);
-    stringModify(users[2].password,pass);
-    generateRandomPassword(20,pass);
-    stringModify(users[3].password,pass);
-    generateRandomPassword(20,pass);
-    stringModify(users[4].password,pass);
-    
-    displaySecurityReport(users,5);
-
-    printf("%d", checkLoginFormat("asd213hasdhashd_-"));
-}

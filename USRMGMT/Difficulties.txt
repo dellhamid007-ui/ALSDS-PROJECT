@@ -10,3 +10,6 @@ int searchUser(struct User users[], int n, char name[]){
     }
     return -1;  // Not found
 }
+
+
+to avoid circular dependency passwordScore() is "Forward Declared" in USRMGMt.h

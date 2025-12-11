@@ -7,11 +7,14 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
-                "${workspaceFolder}\\USRMGMT\\USRMGMT.c",
+                "main.c",
+                "../AUDSEC/AUDSEC.c",
+                "../USRMGMT/USRMGMT.c",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe",
-                "-I${workspaceFolder}\\USRMGMT"
+                "${workspaceFolder}\\program.exe",
+                "-I${workspaceFolder}\\USRMGMT",
+                "-I${workspaceFolder}\\AUDSEC",
+                "-Wl,-subsystem,console"
             ],
             "options": {
                 "cwd": "${fileDirname}"
