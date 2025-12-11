@@ -1,12 +1,8 @@
 #include <time.h>
 #include <stdio.h>
+#include "AUDSEC.h"
+#include "../USRMGMT/USRMGMT.h"
 
-struct User{
-    char name[20];
-    char password[20];
-    int role; //0: User, 1: Admin
-    int state;  //0: Active, 2:Blocked
-};
 
 
 int textLength(char text[]){
@@ -335,23 +331,22 @@ void displaySecurityReport(struct User users[], int n){
 
 
 int main(){
-    //struct User users[5];
-    //char pass[20];
+    struct User users[5];
+    char pass[20];
 
-    //int user_count = sizeof(users)/ sizeof(users[0]);
 
-    //generateRandomPassword(20,pass);
-    //strcpy(users[0].password,pass);
-    //generateRandomPassword(20,pass);
-    //strcpy(users[1].password,pass);
-    //generateRandomPassword(20,pass);
-    //strcpy(users[2].password,pass);
-    //generateRandomPassword(20,pass);
-    //strcpy(users[3].password,pass);
-    //generateRandomPassword(20,pass);
-    //strcpy(users[4].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[0].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[1].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[2].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[3].password,pass);
+    generateRandomPassword(20,pass);
+    stringModify(users[4].password,pass);
     
-    //displaySecurityReport(users,user_count);
+    displaySecurityReport(users,5);
 
-    //printf("%d", checkLoginFormat("asd213hasdhashd_-"));
+    printf("%d", checkLoginFormat("asd213hasdhashd_-"));
 }

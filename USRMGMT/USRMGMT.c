@@ -1,11 +1,7 @@
 #include <stdio.h>
-#include<string.h>
-struct User{                                                    //Deleted <-> can be overwritten
-    char name[20];          //0 for deleted users
-    char password[20];      //0 for deleted users    
-    int role;               //0:user, 1:admin, 999:deleted 
-    int state;              //0:active 1:blocked 999:deleted
-};
+#include <string.h>
+#include "USRMGMT.h"
+
 int checkWhitespace(char c){  //to fix usernames not matching
     return(c == ' ' || c == '\t' || c== '\n' || c == '\r' || c == '\f' || c == 'v' );
 }
@@ -79,7 +75,7 @@ void addUser(struct User users[],int n){
 int searchUser(struct User users[], int n, char name[]){
     for(int i = 0; i < n; i++) {
         if (compareString(users[i].name, name) == 0) {
-            return i;  // Found at index i
+            return i + 1;  // Found at index i
         }
     }
     return -1;  // Not found
@@ -88,7 +84,7 @@ int searchUser(struct User users[], int n, char name[]){
 void deleteUser(struct User users[], int n, char *name){
     printf("Enter the User you want to delete: "); scanf("%19s", name);
 
-    int usrIndex = searchUser(users, n, name);
+    int usrIndex = searchUser(users, n, name) - 1;
     int found = 0;
 
     if(usrIndex != -1){
@@ -96,37 +92,53 @@ void deleteUser(struct User users[], int n, char *name){
         stringModify(users[usrIndex].password, "0");
         users[usrIndex].role = 999;
         users[usrIndex].state = 999;     
-        printf("User Successfully deleted");
+        printf("User Successfully deleted\n");
 
     }
     else printf("ERROR: User Not found\n");
 }
 
+void changePassword(struct User users[], int n, char name[]){
+    int usrIndex = searchUser(users, n, name) - 1;
+    char newPass[20];
+    printf("Enter the new password: "); scanf("%s",&newPass);
 
-int main(){
-    char name[20];
-    struct User users[5];
-    stringModify(users[0].name,"User1");
-    stringModify(users[1].name,"User2");
-    stringModify(users[2].name,"User3");
-    stringModify(users[3].name,"User4");
-    stringModify(users[4].name,"User5");
-
-    displayUsers(users,5);
-
-    initUsers(users,5);
-
-
-    displayUsers(users,5);
-
-    addUser(users, 3);
-    stringModify(users[4].name,"User5");
-    users[4].role = 1;
-
-    displayUsers(users,5);
-
-    deleteUser(users,5,name);
+    stringModify(users[usrIndex].password, newPass);
     
-    displayUsers(users,5);
 }
+
+
+//int main(){
+    //char name[20];
+    //struct User users[5];
+    //stringModify(users[0].name,"User1");
+    //stringModify(users[1].name,"User2");
+    //stringModify(users[2].name,"User3");
+    //stringModify(users[3].name,"User4");
+    //stringModify(users[4].name,"User5");
+
+    //displayUsers(users,5);
+
+  //  initUsers(users,5);
+
+
+//    displayUsers(users,5);
+
+    //addUser(users, 3);
+    //stringModify(users[4].name,"User5");
+    //users[4].role = 1;
+
+    //displayUsers(users,5);
+
+    //deleteUser(users,5,name);
+    
+    //displayUsers(users,5);
+
+    //printf("%s\n", users[3].password);
+
+  //  changePassword(users, 5, "Midou");
+
+  //  printf("%s\n", users[3].password);
+
+//}
 
