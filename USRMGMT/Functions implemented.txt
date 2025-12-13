@@ -11,4 +11,10 @@
 11- changeRole()
 12- listAdmins()
 13- stringLength()
-14- 
+14- containsUppercase()
+15- containsLowercase()
+16- containsDigit()
+17- containsSymbol()
+18- userStatistics()
+19- saveUsers()
+20- loadUsers()

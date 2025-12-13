@@ -59,3 +59,132 @@ int main(){
     
 
 }
+
+
+
+
+void checkFileAccess() {
+    // Try to open in read mode first
+    FILE* test = NULL;
+    errno_t err = fopen_s(&test, "User.dat", "r");
+    
+    if (err == 0 && test != NULL) {
+        printf("File can be opened for reading\n");
+        fclose(test);
+    } else {
+        printf("Cannot open for reading. Error: %d\n", err);
+    }
+    
+    // Try exclusive mode
+    err = fopen_s(&test, "User.dat", "r+");
+    if (err == 0 && test != NULL) {
+        printf("File can be opened for read/write\n");
+        fclose(test);
+    } else {
+        printf("Cannot open for read/write. Error: %d\n", err);
+    }
+}
+void debugFileContents() {
+    printf("=== File Contents Analysis ===\n");
+    
+    FILE* file;
+    fopen_s(&file, "User.dat", "rb");  // Binary mode to see everything
+    
+    if (!file) {
+        printf("Cannot open file\n");
+        return;
+    }
+    
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    
+    printf("File size: %ld bytes\n\n", size);
+    
+    if (size == 0) {
+        printf("File is EMPTY! saveUsers isn't writing anything.\n");
+        fclose(file);
+        return;
+    }
+    
+    // Read and display entire file
+    printf("Raw contents (showing special characters):\n");
+    printf("===========================================\n");
+    
+    int line = 1;
+    int inFile = 1;
+    
+    while (inFile) {
+        printf("%03d: ", line++);
+        
+        for(int i = 0; i < 64; i++) {
+            int ch = fgetc(file);
+            
+            if (ch == EOF) {
+                inFile = 0;
+                printf("\n[END OF FILE]");
+                break;
+            }
+            
+            // Show character with special codes
+            if (ch == '\n') printf("\\n ");
+            else if (ch == '\r') printf("\\r ");
+            else if (ch == '\t') printf("\\t ");
+            else if (ch == ' ') printf("· ");
+            else if (ch >= 32 && ch < 127) printf("%c ", ch);
+            else printf("¿ ");  // Non-printable
+        }
+        printf("\n");
+    }
+    
+    fclose(file);
+    
+    printf("\n=== Now testing fscanf parsing ===\n");
+    
+    // Try to parse with your exact format
+    fopen_s(&file, "User.dat", "r");
+    
+    char name[50], pass[50];
+    int role, state;
+    int count = 0;
+    
+    while (1) {
+        // Try YOUR format
+        int result = fscanf_s(file, "Name: %s  Password: %s  role: %d  state: %d\n",
+                             name, 50, pass, 50, &role, &state);
+        
+        printf("fscanf attempt %d: returned %d\n", count + 1, result);
+        
+        if (result == 4) {
+            printf("  Success! Read: %s / %s / %d / %d\n", name, pass, role, state);
+            count++;
+        } else if (result == EOF) {
+            printf("  End of file\n");
+            break;
+        } else {
+            printf("  Failed to parse. What's at current position?\n");
+            
+            // Show next 50 characters
+            char next[51];
+            long pos = ftell(file);
+            fread(next, 1, 50, file);
+            next[50] = '\0';
+            
+            printf("  Next 50 chars: ");
+            for(int i = 0; i < 50 && next[i] != '\0'; i++) {
+                if (next[i] == '\n') printf("\\n");
+                else if (next[i] == '\r') printf("\\r");
+                else if (next[i] == '\t') printf("\\t");
+                else printf("%c", next[i]);
+            }
+            printf("\n");
+            
+            fseek(file, pos, SEEK_SET);  // Go back
+            break;
+        }
+    }
+    
+    fclose(file);
+    printf("\nTotal users parsed: %d\n", count);
+}

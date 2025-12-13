@@ -224,3 +224,150 @@ int containsSymbol(char str[]){   //Reused the lookup table approach
     return 0;
 
 }
+
+void userStatistics(struct User users[], int n){
+    int numAdmin = 0;
+    for(int i=0; i<n; i++){
+        if(users[i].role == 1) numAdmin++;
+    }
+
+    int numBlocked = 0;
+    for(int i=0; i<n; i++){
+        if(users[i].state == 1) numBlocked++;
+    }
+
+    int actualUsers = 0;
+    for(int i=0; i<n; i++){
+        if(users[i].state != 999) actualUsers++;
+    }
+
+    float perAdmin = (numAdmin*100/actualUsers);
+    float perBlocked = (numBlocked*100/actualUsers);
+
+    int strongPass = 0;
+    for(int i =0; i<n;i++){
+        if(users[i].state != 999){
+            if(strongPassword(users[i].password) == 1) strongPass++;
+        }
+    }
+
+    float perStrongPass = (strongPass*100/actualUsers);
+
+    
+    printf("\nUSER STATISTICS\n");
+    printf("===============\n\n");
+    
+    printf("Total records: %d\n", n);
+    printf("Actual users: %d\n\n", actualUsers);
+    
+    printf("User Distribution:\n");
+    printf("  Administrators: %d (%.1f%%)\n", numAdmin, perAdmin);
+    printf("  Regular users: %d (%.1f%%)\n", actualUsers - numAdmin, 100 - perAdmin);
+    printf("  Blocked users: %d (%.1f%%)\n", numBlocked, perBlocked);
+    printf("  Active users: %d (%.1f%%)\n\n", actualUsers - numBlocked, 100 - perBlocked);
+    
+    printf("Security Analysis:\n");
+    printf("  Strong passwords: %d (%.1f%%)\n", strongPass, perStrongPass);
+    printf("  Weak passwords: %d (%.1f%%)\n\n", actualUsers - strongPass, 100 - perStrongPass);
+
+    FILE* file = fopen("user_stats.dat", "w");
+    if (!file) return;
+    fprintf(file, "USER STATISTICS REPORT\n");
+    fprintf(file, "======================\n\n");
+    
+    fprintf(file, "Total records: %d\n", n);
+    fprintf(file, "Actual users: %d\n\n", actualUsers);
+    
+    fprintf(file, "User Distribution:\n");
+    fprintf(file, "  Administrators: %d (%.1f%%)\n", numAdmin, perAdmin);
+    fprintf(file, "  Regular users: %d (%.1f%%)\n", actualUsers - numAdmin, 100 - perAdmin);
+    fprintf(file, "  Blocked users: %d (%.1f%%)\n", numBlocked, perBlocked);
+    fprintf(file, "  Active users: %d (%.1f%%)\n\n", actualUsers - numBlocked, 100 - perBlocked);
+    
+    fprintf(file, "Security Analysis:\n");
+    fprintf(file, "  Strong passwords: %d (%.1f%%)\n", strongPass, perStrongPass);
+    fprintf(file, "  Weak passwords: %d (%.1f%%)\n\n", actualUsers - strongPass, 100 - perStrongPass);
+    
+    
+    fclose(file);
+    printf("Statistics exported to user_stats.dat\n");
+}
+
+
+
+const char* PERSON_FORMAT_IN = "Name: %s  Password: %s  role: %d  state: %d\n"; //Formats for Reading/writing
+
+const char* PERSON_FORMAT_OUT = "Name: %s  Password: %s  role: %d  state: %d\n";
+
+void saveUsers(struct User users[], int n) {
+    FILE* file;
+    fopen_s(&file, "User.dat", "w");
+    
+    if (file == NULL) {
+        printf("Cannot open for writing\n");
+        return;
+    }
+
+    for(int i = 0; i < n; i++) {
+        fprintf(file, PERSON_FORMAT_OUT, users[i].name, users[i].password, users[i].role, users[i].state);
+    }
+    
+    fclose(file);
+    printf("Save complete\n");
+}
+
+
+
+void loadUsers(struct User users[], int n){
+
+    FILE* file;
+
+    fopen_s(&file, "User.dat", "r"); 
+
+    if (file ==NULL){
+        printf("Cannot Open User.dat");
+        initUsers(users,n);
+
+        return;
+    }
+
+int count = 0;
+    while(count < n) {
+        // Read one user
+        int result = fscanf_s(file, PERSON_FORMAT_IN,
+                            users[count].name, 20,
+                            users[count].password, 20,
+                            &users[count].role,
+                            &users[count].state);
+        
+        // Check what was actually read
+        if (result == 4) {
+            // Successfully read all 4 fields
+            count++;
+        } 
+        else if (result == EOF) {
+            // End of file reached
+            break;
+        }
+        else {
+            // Partial read or error
+            printf("Warning: Only read %d fields for user %d\n", result, count);
+            break;
+        }
+    }
+    
+    fclose(file);  // MUST close file!
+    
+    // Initialize remaining users if file had fewer than n users
+    for(int i = count; i < n; i++) {
+        users[i].name[0] = '\0';
+        users[i].password[0] = '\0';
+        users[i].role = 0;
+        users[i].state = 0;
+    }
+    
+    printf("Loaded %d users from file\n", count);
+
+
+}
+

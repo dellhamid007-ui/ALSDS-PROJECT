@@ -8,6 +8,8 @@ struct User{                                                    //Deleted <-> ca
     int state;              //0:active 1:blocked 999:deleted
 };
 
+
+
 int passwordScore(char pass[]);
 int textLength(char text[]);
 
@@ -33,6 +35,10 @@ int containsUppercase(char str[]);
 int containsLowercase(char str[]);
 int containsDigit(char str[]);
 int containsSymbol(char str[]);
+void userStatistics(struct User users[], int n);
+void saveUsers(struct User users[], int n);
+void loadUsers(struct User users[], int n);
+
 
 
 

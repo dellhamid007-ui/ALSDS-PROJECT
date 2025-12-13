@@ -1,0 +1,5 @@
+Name: Use  Password: Use  role: 0  state: 999
+Name: User2  Password: !123ahsdHHsadnj!!  role: 1  state: 0
+Name: User3  Password: User3  role: 0  state: 1
+Name: User4  Password: User4  role: 0  state: 1
+Name: User5  Password: User5  role: 0  state: 1

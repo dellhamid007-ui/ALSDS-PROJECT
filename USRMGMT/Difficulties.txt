@@ -13,3 +13,7 @@ int searchUser(struct User users[], int n, char name[]){
 
 
 to avoid circular dependency passwordScore() is "Forward Declared" in USRMGMt.h
+
+
+
+saveUsers() and loadUsers() involve multiple file manipulation functions i barely understand, Opted for .dat files.
