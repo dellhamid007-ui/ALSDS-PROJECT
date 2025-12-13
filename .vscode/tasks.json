@@ -10,10 +10,12 @@
                 "main.c",
                 "../AUDSEC/AUDSEC.c",
                 "../USRMGMT/USRMGMT.c",
+                "../MTHSEC/MTHSEC.c",
                 "-o",
                 "${workspaceFolder}\\program.exe",
                 "-I${workspaceFolder}\\USRMGMT",
                 "-I${workspaceFolder}\\AUDSEC",
+                "-I${workspaceFolder}\\MTHSEC",
                 "-Wl,-subsystem,console"
             ],
             "options": {

@@ -188,3 +188,20 @@ void debugFileContents() {
     fclose(file);
     printf("\nTotal users parsed: %d\n", count);
 }
+
+
+
+
+    char name[20];
+    struct User users[5];
+
+    initUsers(users,5);
+    displayUsers(users,5);
+    loadUsers(users,5);
+
+    displayUsers(users,5);
+
+
+    userStatistics(users, 5);
+
+    printf("%d",globalSecurityLevel(users,5));

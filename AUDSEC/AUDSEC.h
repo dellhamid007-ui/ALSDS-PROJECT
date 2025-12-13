@@ -23,6 +23,8 @@ int checkEmailFormat(char email[]);
 int checkLoginFormat(char name[]);
 void generateHexKey(int length, char key[]); 
 void top3Passwords(struct User users[], int n);
+int globalSecurityLevel(struct User users[], int n);
+
 
 
 

@@ -1,4 +1,4 @@
-Functions Done: 14/20
+Functions Done: 19/20
 
 1-countUppercase()
 2-countLowercase()
@@ -18,3 +18,5 @@ Functions Done: 14/20
 16-checkEmailFormat()
 17-top3Emails()
 18-displaySecurityReport()
+19-checkLoginFormat()
+20-globalSecurityLevel()

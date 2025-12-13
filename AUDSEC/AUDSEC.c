@@ -108,18 +108,26 @@ int veryStrongPassword(char pass[]){
 
 float averageScore(struct User users[],int n){
     float sum = 0;
+    int validUsers = 0;
     for(int i =0; i<n;i++){
-        sum += (float)passwordScore(users[i].password);
+        if(users[i].state !=999) {
+            sum += (float)passwordScore(users[i].password);
+            validUsers++;
+        }
     }
 
-    float avg = sum / n;
+    if(validUsers==0) return 0;
+
+    float avg = sum / validUsers;
     return avg;
 }
 
 int countStrongUsers(struct User users[], int n){
     int count = 0;
     for(int i = 0;i<n; i++){
-        if(passwordScore(users[i].password)>=60) count ++;
+        if(users[i].state !=999) {
+            if(passwordScore(users[i].password)>=60) count ++;
+        }
     }
 
     return count;
@@ -327,4 +335,45 @@ void displaySecurityReport(struct User users[], int n){
 
     printf("The amount of users with strong passwords: %d\n",strong_users);
     top3Passwords(users,n);
+}
+
+int globalSecurityLevel(struct User users[], int n) {
+    if (n == 0) return 0;
+    
+    int score = 0;
+    int validUsers = 0;
+    
+    for (int i = 0; i < n; i++) {
+        if (users[i].state == 999) continue; //skip deleted users
+        
+        validUsers++;
+        
+        int passScore = passwordScore(users[i].password);
+        
+        if (users[i].role == 1) {  // Admin
+            if (passScore >= 90) score += 100;
+            else if (passScore >= 70) score += 80;
+            else if (passScore >= 50) score += 50;
+            else score += 20;
+        } else {  // Regular user (role == 0)
+            if (passScore >= 80) score += 90;
+            else if (passScore >= 60) score += 70;
+            else if (passScore >= 40) score += 50;
+            else score += 30;
+        }
+        
+        //penalty for blocked users
+        if (users[i].state == 1) score -= 15;
+        
+        //penalty for admins with weak passwords
+        if (users[i].role == 1 && passScore < 50) score -= 30;
+    }
+    
+    if (validUsers == 0) return 0;
+    
+    int finalScore = score / validUsers;
+    
+    if (finalScore < 0) return 0;
+    if (finalScore > 100) return 100;
+    return finalScore;
 }
