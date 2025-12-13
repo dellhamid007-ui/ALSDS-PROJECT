@@ -238,3 +238,11 @@ void addMatrices(struct Matrix A, struct Matrix B, struct Matrix *C){
     }
 }
 
+void multiplyMatrices(struct Matrix A, struct Matrix B, struct Matrix *C){
+    if(A.p != B.n){
+        printf("Error");
+        return;
+    }
+    C->n = A.n;
+    C->p = B.p;
+}
