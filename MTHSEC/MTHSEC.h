@@ -1,7 +1,7 @@
 #ifndef MTHSEC_H
 #define MTHSEC_H
 
-struct Matrix{
+struct Matrix_{
     int data[10][10];
     int n,p;
 };
@@ -24,8 +24,13 @@ float averageArray(int T[],int n);
 int maxArray(int T[], int n);
 int minArray(int T[], int n);
 void sortAscending(int T[], int n);
-void displayMatrix(struct Matrix M);
-void addMatrices(struct Matrix A, struct Matrix B, struct Matrix *C);
+void displayMatrix(struct Matrix_ M);
+void addMatrices(struct Matrix_ A, struct Matrix_ B, struct Matrix_ *C);
+void multiplyMatrices(struct Matrix_ A, struct Matrix_ B, struct Matrix_ *C);
+void transposeMatrix(struct Matrix_ A, struct Matrix_ *T);
+int determinant2x2(int A[2][2]);
+int isSymmetric(struct Matrix_ M);
+int isIdentity(struct Matrix_ M);
 
 
 

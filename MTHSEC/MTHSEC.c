@@ -212,7 +212,7 @@ void sortAscending(int T[], int n){  //Bubble sort algorithm
     }
 }
 
-void displayMatrix(struct Matrix M){
+void displayMatrix(struct Matrix_ M){
     for(int i = 0; i <M.n; i++){
         for(int j = 0; j< M.p; j++){
             printf("%d  ",M.data[i][j]);
@@ -222,7 +222,7 @@ void displayMatrix(struct Matrix M){
     printf("\n");
 }
 
-void addMatrices(struct Matrix A, struct Matrix B, struct Matrix *C){
+void addMatrices(struct Matrix_ A, struct Matrix_ B, struct Matrix_ *C){
     if(A.n != B.n || A.p != B.p){
         printf("Error");
         return;
@@ -238,11 +238,63 @@ void addMatrices(struct Matrix A, struct Matrix B, struct Matrix *C){
     }
 }
 
-void multiplyMatrices(struct Matrix A, struct Matrix B, struct Matrix *C){
+void multiplyMatrices(struct Matrix_ A, struct Matrix_ B, struct Matrix_ *C){
     if(A.p != B.n){
         printf("Error");
         return;
     }
     C->n = A.n;
     C->p = B.p;
+}
+
+
+void transposeMatrix(struct Matrix_  A, struct Matrix_  *T){
+    T->n = A.p;
+    T->p = A.n;
+
+    for(int i = 0; i<A.p;i++){
+        for(int j = 0; j<A.n; j++){
+            T->data[i][j] = A.data[j][i];
+        }
+    }    
+}
+
+int determinant2x2(int A[2][2]){
+    int det = (A[0][0]*A[1][1] - A[1][0]*A[0][1]);
+
+    return det;
+}
+
+int isSymmetric(struct Matrix_ M){
+    if(M.n != M.p) return 0;
+
+    struct Matrix_ Mt;
+    transposeMatrix(M,&Mt);
+
+    for(int i=0; i<M.n; i++){
+        for(int j =0; j<M.p; j++){
+            if(M.data[i][j] != Mt.data[i][j]) return 0;
+        }
+    }
+
+    return 1;
+
+}
+
+int isIdentity(struct Matrix_ M){
+    if(M.n != M.p) return 0;
+
+    for(int i=0; i<M.n; i++){
+        for(int j =0; j<M.p; j++){
+            if(i == j){
+                if(M.data[i][j] != 1) return 0; 
+            }
+            else{
+                if(M.data[i][j] != 0) return 0;
+            }
+        }
+    }
+
+    return 1;
+
 }

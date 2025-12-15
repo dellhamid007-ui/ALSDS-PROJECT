@@ -334,8 +334,7 @@ void loadUsers(struct User users[], int n){
 int count = 0;
     while(count < n) {
         // Read one user
-        int result = fscanf_s(file, PERSON_FORMAT_IN,
-                            users[count].name, 20,
+        int result = fscanf_s(file, PERSON_FORMAT_IN,users[count].name, 20,
                             users[count].password, 20,
                             &users[count].role,
                             &users[count].state);
@@ -346,19 +345,15 @@ int count = 0;
             count++;
         } 
         else if (result == EOF) {
-            // End of file reached
             break;
         }
         else {
-            // Partial read or error
             printf("Warning: Only read %d fields for user %d\n", result, count);
             break;
         }
     }
     
-    fclose(file);  // MUST close file!
-    
-    // Initialize remaining users if file had fewer than n users
+    fclose(file); 
     for(int i = count; i < n; i++) {
         users[i].name[0] = '\0';
         users[i].password[0] = '\0';
