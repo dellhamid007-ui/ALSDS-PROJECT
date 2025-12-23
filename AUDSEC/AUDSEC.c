@@ -16,7 +16,7 @@ int textLength(char text[]){
 
 int countDigits(char text[]){
     int count = 0;
-    for (int i=0; i<= textLength(text); i++) {
+    for (int i=0; i< textLength(text); i++) {
         if (text[i]>= '0' && text[i] <= '9') {
             count++;
         }
@@ -27,7 +27,7 @@ int countDigits(char text[]){
 
 int countUppercase(char text[]){
     int count = 0;
-    for (int i=0; i<= textLength(text); i++){
+    for (int i=0; i< textLength(text); i++){
         if (text[i]>= 'A' && text[i] <= 'Z') {
             count++;
         }
@@ -39,7 +39,7 @@ int countUppercase(char text[]){
 
 int countLowercase(char text[]){
     int count = 0;
-    for (int i=0; i<= textLength(text); i++){
+    for (int i=0; i< textLength(text); i++){
         if (text[i]>= 'a' && text[i] <= 'z') {
             count++;
         }
@@ -199,22 +199,24 @@ int RNG(){              //Random Number Generator using LCG and time.h
     return seed;
 }
 
-void generateKey(int length, char key[]){   //Must be maxed at 30 characters due to weak RNG
+void generateKey(int length, char key[]){   
     char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    RNG();
     for(int i =0; i<length;i++){
         int index = (unsigned int)RNG() % 36;
         key[i] = characters[index];
     }
-    key[length+1] = '\0'; //Null Terminator
+    key[length] = '\0'; //Null Terminator
 }
 
 void generateHexKey(int length, char key[]){    
     char characters[] = "0123456789ABCDEF";
+    RNG();
     for(int i =0; i<length;i++){
         int index = (unsigned int)RNG() % 16;
         key[i] = characters[index];
     }
-    key[length+1] = '\0'; //Null Terminator
+    key[length] = '\0'; //Null Terminator
 }
 
 int isHexKey(char key[]){       //Also uses a lookup table like getSpecCharNumber() //case sensitive
@@ -237,13 +239,14 @@ int isHexKey(char key[]){       //Also uses a lookup table like getSpecCharNumbe
 
 }
 
-void generateRandomPassword(int length, char pass[]){  //Must be maxed at 30 characters due to weak RNG
+void generateRandomPassword(int length, char pass[]){  
     char characters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz@!?#$&*_/~";
+    RNG();
     for(int i =0; i<length;i++){
         int index = (unsigned int)RNG() % 72;
         pass[i] = characters[index];
     }
-    pass[length+1] = '\0'; //Null Terminator
+    pass[length] = '\0'; //Null Terminator
 }
 
 

@@ -12,16 +12,16 @@
                 "../USRMGMT/USRMGMT.c",
                 "../MTHSEC/MTHSEC.c",
                 "-o",
-                "${workspaceFolder}\\program.exe",
+                "${workspaceFolder}\\alsds.exe",
                 "-I${workspaceFolder}\\USRMGMT",
                 "-I${workspaceFolder}\\AUDSEC",
                 "-I${workspaceFolder}\\MTHSEC",
-                "-I${workspaceFolder}/include", 
+                "-I${workspaceFolder}/include",
                 "-L${workspaceFolder}/lib",
                 "-lraylib",
-                "-lgdi32", "-lwinmm",
+                "-lgdi32",
+                "-lwinmm",
                 "-Wl,-subsystem,console"
-                
             ],
             "options": {
                 "cwd": "${fileDirname}"

@@ -17,6 +17,7 @@ int textLength(char text[]);
 
 int checkWhitespace(char c);
 char* stringModify(char* dest, const char* source);
+char* stringModifyN(char* dest, const char* source, int max_len);
 int compareString(const char *str1, const char *str2 );
 void initUsers(struct User users[], int n);
 void displayUsers(struct User users[],int n);

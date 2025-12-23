@@ -20,6 +20,23 @@ char* stringModify(char* dest, const char* source){ //rewritten strcpy
     return og_dest;
 }
 
+char* stringModifyN(char* dest, const char* source, int max_len){
+    if (max_len <= 0) return dest; 
+    
+    char* og_dest = dest;
+    int i = 0;
+    
+    while(i < max_len - 1 && *source != '\0'){
+        *dest = *source;
+        dest++;
+        source++;
+        i++;
+    }
+    *dest = '\0';  
+    
+    return og_dest;
+}
+
 int compareString(const char *str1, const char *str2 ){ //rewritten strcmp
     while(1){
         while(checkWhitespace(*str1)) str1++;
@@ -55,7 +72,7 @@ void displayUsers(struct User users[],int n){
 }
 
 void addUser(struct User users[],int n){
-    if(users[n].state =999){
+    if(users[n].state ==999){
         printf("Enter Username:"); scanf("%s",&users[n].name);
         printf("Enter Password: "); scanf("%s",&users[n].password);
         printf("Choose User role: "); scanf("%d",&users[n].role);
@@ -85,6 +102,7 @@ void deleteUser(struct User users[], int n, char *name){
     printf("Enter the User you want to delete: "); scanf("%19s", name);
 
     int usrIndex = searchUser(users, n, name) - 1;
+    if(usrIndex<0) return;
     int found = 0;
 
     if(compareString(name, users[usrIndex].name) == 0){
@@ -100,6 +118,7 @@ void deleteUser(struct User users[], int n, char *name){
 
 void changePassword(struct User users[], int n, char name[]){
     int usrIndex = searchUser(users, n, name) - 1;
+    if(usrIndex<0) return;
     char newPass[20];
     printf("Enter the new password: "); scanf("%s",&newPass);
 
@@ -110,6 +129,8 @@ void changePassword(struct User users[], int n, char name[]){
 
 int checkLogin(struct User users[], int n, char name[], char pass[]){
     int usrIndex = searchUser(users, n, name) - 1;
+    if(usrIndex<0) return -1;
+
     if (compareString(name, users[usrIndex].name) == 0){
         if(compareString(pass, users[usrIndex].password) == 0){
             return 1;
@@ -126,6 +147,7 @@ int strongPassword(char pass[]){
 
 void blockUser(struct User users[], int n, char name[]){
     int usrIndex = searchUser(users, n, name) - 1;
+    if(usrIndex<0) return;
 
     if(users[usrIndex].role == 0){
         if(users[usrIndex].state == 0){

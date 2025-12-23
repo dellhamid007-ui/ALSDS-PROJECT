@@ -238,13 +238,25 @@ void addMatrices(struct Matrix_ A, struct Matrix_ B, struct Matrix_ *C){
     }
 }
 
-void multiplyMatrices(struct Matrix_ A, struct Matrix_ B, struct Matrix_ *C){
-    if(A.p != B.n){
+void multiplyMatrices(struct Matrix_ A, struct Matrix_ B, struct Matrix_ *C) {
+    if (A.p != B.n) {
         printf("Error");
         return;
     }
+    
     C->n = A.n;
     C->p = B.p;
+    
+    for (int i = 0; i < A.n; i++) {
+        for (int j = 0; j < B.p; j++) {
+            
+            C->data[i][j] = 0;
+        
+            for (int k = 0; k < A.p; k++) {
+                C->data[i][j] += A.data[i][k] * B.data[k][j];
+            }
+        }
+    }
 }
 
 

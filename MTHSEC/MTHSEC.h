@@ -31,6 +31,7 @@ void transposeMatrix(struct Matrix_ A, struct Matrix_ *T);
 int determinant2x2(int A[2][2]);
 int isSymmetric(struct Matrix_ M);
 int isIdentity(struct Matrix_ M);
+char* stringModify(char* dest, const char* source);
 
 
 
