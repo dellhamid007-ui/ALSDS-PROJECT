@@ -1,0 +1,56 @@
+1-checkEmailFormat:
+
+established rules:
+Exactly 1 @ 
+@ cannot be the first character
+at least one .
+. cannot be directly after @
+. cannot be the last character
+no 2 consecutive .
+no spaces
+special characters allowed : . - _ + ' @
+
+basic format:
+user@website.domain
+
+
+2-veryStrongPassword:
+
+criteria:
+base score(30)
+-more than 8 characters long (+1 for every additional character)
+-usage of lowercase AND uppercase ( gets percentageUppercase, the closer to 50% the better) (capped at +25 at 50 percent);
+-usage of special characters (@ / \ _ ~ ! ? # $ & *)(+8 per character) (had to use a lookup table, and use unsigned char to avoid negative ASCII values)
+
+SCRAPPED
+
+reused established criteria for passwordScore()
+
+veryStrongPassword is now determined by value returned by passwordScore() (>0.9 password score)
+
+
+
+Generating random keys, passwords.......
+since no real RNGs we have to use PRNGs
+
+used time.h
+Linear Congruential Generator-like algorithm
+
+created an RNG function for repeated use
+
+
+displaySecurityReport() shows:
+total number of users
+average score with average rating (weak, decent, strong, very strong)
+amount of users with strong passwords
+top 3 passwords
+
+
+criteria for checkLoginFormat()
+letters a-z A-Z
+0-9
+_
+-
+min 4 characters
+max 20 characters
+must start with letter
