@@ -4,786 +4,978 @@
 #include "../USRMGMT/USRMGMT.h"
 #include "../AUDSEC/AUDSEC.h"
 #include "../MTHSEC/MTHSEC.h"
+#include "../ENCDEC/ENCDEC.h"
+#include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 
-#include <windows.h>
-#include <commctrl.h>
+int MeasureTextRecAlt(Font font, const char* text, float fontSize, float spacing, float wrapWidth) {
+    int lines = 1;
+    int lineLength = 0;
+    const char* p = text;
+
+    while (*p) {
+        if (*p == '\n') {
+            lines++;
+            lineLength = 0;
+        } else {
+            lineLength++;
+            // Rough wrap check (optional)
+            if (MeasureTextEx(font, "W", fontSize, spacing).x * lineLength > wrapWidth) {
+                lines++;
+                lineLength = 0;
+            }
+        }
+        p++;
+    }
+
+    return (int)(lines * (fontSize + spacing));
+}
+
+void DrawTextRecAlt(Font font, const char* text, Vector2 pos, float fontSize, float spacing, Color color) { //
+    int line = 0;
+    const char* start = text;
+    const char* p = text;
+
+    while (*p) {
+        if (*p == '\n') {
+            int len = p - start;
+            char lineStr[256] = {0};
+            stringModifyN(lineStr, start, len);
+            DrawTextEx(font, lineStr, (Vector2){pos.x, pos.y + line * (fontSize + spacing)}, fontSize, spacing, color);
+            line++;
+            start = p + 1;
+        }
+        p++;
+    }
+
+    // Draw last line
+    if (p != start) {
+        DrawTextEx(font, start, (Vector2){pos.x, pos.y + line * (fontSize + spacing)}, fontSize, spacing, color);
+    }
+}
 
 
 
+void stringConcat(char dest[], const char src[]) //custom strcat 
+{
+    int i = 0;
+    int j = 0;
 
-#define MAX_USERS 100
-#define BTN_GO 1001
-#define LIST_LIBS 1002
+    // Move i to the end of dest
+    while (dest[i] != '\0')
+        i++;
 
-// Global variables
-struct User users[MAX_USERS];
-HWND hListBox, hGoBtn;
+    // Copy src to the end of dest
+    while (src[j] != '\0')
+    {
+        dest[i] = src[j];
+        i++;
+        j++;
+    }
 
-// Function prototypes
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void AddText(const char* text);
-void LoadLibraryList();
-void ExecuteSelectedLibrary();
-void ReturnToMainMenu(void);
-void ShowUserManagementMenu(void);
-void ShowMathToolsMenu(void);
-void ShowAuditMenu(void);
-void ExecuteSelectedFunction(void);
-void ShowAllUsers(void);
-void ShowAddUserDialog(void);
-void ShowPrimeCheckDialog(void);
+    dest[i] = '\0';
+}
 
-// WinMain
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
-                   LPSTR lpCmdLine, int nCmdShow) {
-    
-    // Window class
-    WNDCLASSA wc = {0};
-    wc.lpfnWndProc = WindowProc;
-    wc.hInstance = hInstance;
-    wc.lpszClassName = "LibSelector";
-    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    
-    RegisterClassA(&wc);
-    
-    // Create window
-    HWND hwnd = CreateWindowA(
-        "LibSelector",
-        "Library Selector - SELECT then PRESS GO",
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        100, 100, 500, 400,
-        NULL, NULL, hInstance, NULL
-    );
-    
-    if (!hwnd) return 0;
-    
-    // Create listbox (SINGLE selection mode)
-    hListBox = CreateWindowA(
-        "LISTBOX", "",
-        WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_BORDER | LBS_NOTIFY,
-        10, 10, 460, 300,
-        hwnd, (HMENU)LIST_LIBS, hInstance, NULL
-    );
-    
-    // Create GO button
-    hGoBtn = CreateWindowA(
-        "BUTTON", "GO",
-        WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
-        350, 320, 120, 30,
-        hwnd, (HMENU)BTN_GO, hInstance, NULL
-    );
-    
-    // Load users
+typedef enum {
+    SCREEN_MAIN_MENU,
+    SCREEN_ENCDEC,
+    SCREEN_MTHSEC,
+    SCREEN_USRMGMT,
+    SCREEN_AUDSEC,
+    SCREEN_LOGMGMT,
+    SCREEN_HELP
+} AppScreen;
+
+typedef enum {
+    MTH_NUMBERS,
+    MTH_ARRAYS,
+    MTH_MATRICES
+} MathSection;
+
+AppScreen currentScreen = SCREEN_MAIN_MENU;
+static MathSection currentMath = MTH_NUMBERS;
+
+
+int main(void)
+{
+
+    #define MAX_USERS 100
+    struct User users[MAX_USERS];
     loadUsers(users, MAX_USERS);
-    
-    // Load library list
-    LoadLibraryList();
-    
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
-    
-    // Focus on listbox
-    SetFocus(hListBox);
-    
-    // Message loop
-    MSG msg;
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-    
-    return 0;
-}
 
-// Window procedure
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-        case WM_COMMAND: {
-            int cmd = LOWORD(wParam);
-            
-            if (cmd == BTN_GO) {
-                // Get the first line to determine context
-                char firstLine[100];
-                SendMessageA(hListBox, LB_GETTEXT, 0, (LPARAM)firstLine);
+
+    const int screenWidth = 900;
+    const int screenHeight = 600;
+
+
+    
+
+    InitWindow(screenWidth, screenHeight, "Security Utility Library System");
+    SetTargetFPS(60);
+
+    bool exitRequested = false;
+
+    while (!WindowShouldClose() && !exitRequested)
+    {
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        switch (currentScreen)
+        {
+            case SCREEN_MAIN_MENU:
+            {
+                DrawText("SECURITY UTILITY LIBRARY SYSTEM",
+                         180, 50, 28, DARKGRAY);
+
+                DrawText("Main Menu", 395, 95, 20, GRAY);
+
+                Rectangle buttons[7] = {
+                    {350, 150, 200, 42}, // ENCDEC
+                    {350, 200, 200, 42}, // MTHSEC
+                    {350, 250, 200, 42}, // USRMGMT
+                    {350, 300, 200, 42}, // AUDSEC
+                    {350, 350, 200, 42}, // LOGMGMT
+                    {350, 400, 200, 42}, // HELP
+                    {350, 460, 200, 42}  // EXIT
+                };
+
+                if (GuiButton(buttons[0], "ENCDEC - Encryption"))
+                    currentScreen = SCREEN_ENCDEC;
+
+                if (GuiButton(buttons[1], "MTHSEC - Math & Security"))
+                    currentScreen = SCREEN_MTHSEC;
+
+                if (GuiButton(buttons[2], "USRMGMT - User Management"))
+                    currentScreen = SCREEN_USRMGMT;
+
+                if (GuiButton(buttons[3], "AUDSEC - Audit & Security"))
+                    currentScreen = SCREEN_AUDSEC;
+
+                if (GuiButton(buttons[4], "LOGMGMT - Log Management"))
+                    currentScreen = SCREEN_LOGMGMT;
+
+                if (GuiButton(buttons[5], "Help"))
+                    currentScreen = SCREEN_HELP;
+
+                if (GuiButton(buttons[6], "Exit"))
+                    exitRequested = true;
+
+                DrawText("Raylib GUI - Academic Project",
+                         330, 525, 14, LIGHTGRAY);
+            } break;
+
+            case SCREEN_ENCDEC:
+            {
+                static struct Message inputText = {"",200};
+                static char outputText[200] = {0};
+                static char keyText[30] = "";
+                static char letter[2] = "";
+                static bool editInput = false;
+                static bool editKey = false;
+                static bool editLetter = false;
+
+                DrawText("ENCDEC - Encryption & Decryption",
+                        240, 40, 26, DARKGRAY);
+
+                // Input panel
+                GuiPanel((Rectangle){50, 100, 350, 200}, "Input");
+                GuiLabel((Rectangle){60, 140, 80, 20}, "Message:");
+                GuiLabel((Rectangle){60, 205, 80, 20}, "Key:");
+                GuiLabel((Rectangle){200, 205, 80, 20}, "Letter:");
+
+                Vector2 mousePoint = GetMousePosition();
+
+                    if (GuiTextBox((Rectangle){60, 165, 330, 30}, inputText.text, 200, editInput) || editInput){
+                        editInput = true;
+                        editKey = false;
+                        editLetter = false;
+                    }
+                    else
+                        editInput = false;
+
+                    if (GuiTextBox((Rectangle){60, 230, 80, 30}, keyText, 29, editKey) || editKey){
+                        editKey = true;
+                        editInput = false;
+                        editLetter = false;
+                    }
+                    else
+                        editKey = false;
+                    
+                    if (GuiTextBox((Rectangle){200, 230, 80, 30}, letter, 2, editLetter) || editLetter){
+                        editLetter = true;
+                        editInput = false;
+                        editKey = false;
+                    }
+                    else
+                        editLetter = false;
+               
+                // Output panel
+                GuiPanel((Rectangle){450, 100, 350, 200}, "Output");
+                GuiLabel((Rectangle){460, 140, 80, 20}, "Result:");
+                GuiTextBox(
+                    (Rectangle){460, 165, 330, 30},
+                    outputText, 200, false
+                );
+
                 
-                // Check what screen we're on
-                if (strstr(firstLine, "=== SELECT A LIBRARY ===")) {
-                    // Main menu - execute selected library
-                    ExecuteSelectedLibrary();
+
+                // Action buttons (placeholders)
+                if (GuiButton((Rectangle){150, 330, 160, 35}, "To Uppercase"))
+                {
+                    struct Message temp = inputText;
+                    toUppercase(&temp);
+
+                    stringModify(outputText, temp.text);
                 }
-                else if (strstr(firstLine, "=== USER MANAGEMENT SYSTEM ===")) {
-                    // In User Management - show user functions menu
-                    ShowUserManagementMenu();
+
+                if (GuiButton((Rectangle){150, 420, 160, 35}, "To Lowercase")) {
+                    struct Message temp = inputText;
+                    toLowercase(&temp);
+
+                    stringModify(outputText, temp.text);
                 }
-                else if (strstr(firstLine, "=== MATH & SECURITY TOOLS ===")) {
-                    // In Math Tools - show math functions menu
-                    ShowMathToolsMenu();
+
+                if (GuiButton((Rectangle){150, 465, 160, 35}, "Valid Sub key?")) {
+                    if(isValidKey(keyText) == 1){
+                        stringModify(outputText, "The Key is Valid");
+                    }
+                    else stringModify(outputText, "The Key is not Valid");
                 }
-                else if (strstr(firstLine, "=== SECURITY AUDIT & ANALYSIS ===")) {
-                    // In Security Audit - show audit functions menu
-                    ShowAuditMenu();
+
+                if (GuiButton((Rectangle){150, 420, 160, 35}, "Count Character")) {
+                    char l = letter[0];
+                    int c = countCharacter(inputText, l);
+                    sprintf(outputText,"%d",c);
                 }
-                else if (strstr(firstLine, "Available Functions:")) {
-                    // In functions menu - execute selected function
-                    ExecuteSelectedFunction();
+
+                if (GuiButton((Rectangle){150, 420, 160, 35}, "Coincidence Index")) {
+                    double index = coincidenceIndex(inputText);
+                    sprintf(outputText,"%lf",index);
                 }
-                else {
-                    // Any other screen - return to main menu
-                    ReturnToMainMenu();
+
+                if (GuiButton((Rectangle){150, 375, 160, 35}, "Reverse"))
+                {
+                    struct Message temp = inputText;
+                    reverseMessage(&temp);
+
+                    stringModify(outputText, temp.text);
                 }
-            }
-            else if (cmd == LIST_LIBS) {
-                if (HIWORD(wParam) == LBN_DBLCLK) {
-                    // Double-click behaves like GO button
-                    SendMessage(hwnd, WM_COMMAND, MAKEWPARAM(BTN_GO, 0), 0);
+
+                if (GuiButton((Rectangle){420, 330, 160, 35}, "Caesar Encrypt"))
+                {
+                    struct Message temp = inputText;
+                    encryptCesar(&temp, atoi(keyText));
+
+                    stringModify(outputText, temp.text);
                 }
+
+                if (GuiButton((Rectangle){420, 375, 160, 35}, "Caesar Decrypt"))
+                {
+                    struct Message temp = inputText;
+                    decryptCesar(&temp, atoi(keyText));
+
+                    stringModify(outputText, temp.text);
+                }
+
+                if (GuiButton((Rectangle){420, 420, 160, 35}, "XOR Encrypt")) {
+                    struct Message temp = inputText;
+                    encryptXOR(&temp, (unsigned char)(keyText[0]));
+
+                    toHexString((unsigned char*)temp.text,stringLength(temp.text),outputText);
+
+                }
+
+                if (GuiButton((Rectangle){420, 465, 160, 35}, "XOR Decrypt")) {
+                    struct Message temp;
+
+                    hexStringToBytes(inputText.text,stringLength(temp.text)/2,(unsigned char *)temp.text);
+
+                    temp.text[stringLength(inputText.text)/2] = '\0';
+
+
+                    decryptXOR(&temp, (unsigned char)(keyText[0]));
+
+                    stringModify(outputText, temp.text);
+                    
+                }
+
+                if (GuiButton((Rectangle){420, 510, 160, 35}, "Substitution Encrypt")) {
+                    struct Message temp = inputText;
+                    encryptSubstitution(&temp, keyText);
+
+                    stringModify(outputText, temp.text);
+                }
+
+                if (GuiButton((Rectangle){420, 555, 160, 35}, "Substitution Decrypt")) {
+                    struct Message temp = inputText;
+                    decryptSubstitution(&temp, keyText);
+
+                    stringModify(outputText, temp.text);
+                }
+
+                if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                    currentScreen = SCREEN_MAIN_MENU;
             }
             break;
-        }
-        case WM_SIZE: {
-            int width = LOWORD(lParam);
-            int height = HIWORD(lParam);
-            
-            // Listbox
-            MoveWindow(hListBox, 10, 10, width - 20, height - 80, TRUE);
-            
-            // GO button (bottom right)
-            MoveWindow(hGoBtn, width - 130, height - 60, 120, 30, TRUE);
-            
-            break;
-        }
-        
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            break;
-            
-        default:
-            return DefWindowProcA(hwnd, uMsg, wParam, lParam);
-    }
-    return 0;
-}
 
-// Add text to listbox
-void AddText(const char* text) {
-    SendMessageA(hListBox, LB_ADDSTRING, 0, (LPARAM)text);
-}
+                case SCREEN_MTHSEC:
+                {
+                    static MathSection currentMath = MTH_NUMBERS;
 
-// Load libraries into listbox
-void LoadLibraryList() {
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    
-    AddText("=== SELECT A LIBRARY ===");
-    AddText("");
-    AddText("1. User Management System");
-    AddText("2. Math & Security Tools");
-    AddText("3. Security Audit & Analysis");
-    AddText("4. Encryption & Decryption (Coming)");
-    AddText("5. Log Management (Coming)");
-    AddText("");
-    AddText("Select an item above, then press GO button!");
-}
+                    // ---------- INPUT FIX (PUT HERE) ----------
+                    Vector2 mousePoint = GetMousePosition();
 
-// Execute the selected library
-void ExecuteSelectedLibrary() {
-    int selected = SendMessageA(hListBox, LB_GETCURSEL, 0, 0);
-    
-    if (selected == LB_ERR) {
-        MessageBoxA(hListBox, "Please select a library first!", "No Selection", MB_OK);
-        return;
-    }
-    
-    // Get the selected text
-    char buffer[100];
-    SendMessageA(hListBox, LB_GETTEXT, selected, (LPARAM)buffer);
-    
-    // Clear listbox and show library features
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    
-    // Check which library was selected
-    if (buffer[0] == '1' || strstr(buffer, "User Management")) {
-        // User Management features
-        AddText("=== USER MANAGEMENT SYSTEM ===");
-        AddText("");
-        AddText("Available Functions:");
-        AddText("-------------------");
-        AddText("1. initUsers - Initialize user list");
-        AddText("2. displayUsers - Show all users");
-        AddText("3. addUser - Add new user");
-        AddText("4. deleteUser - Remove user");
-        AddText("5. searchUser - Find user by name");
-        AddText("6. changePassword - Update password");
-        AddText("7. checkLogin - Verify credentials");
-        AddText("8. blockUser - Block a user");
-        AddText("9. unblockUser - Unblock user");
-        AddText("10. changeRole - Change user/admin role");
-        AddText("11. listAdmins - Show administrators");
-        AddText("12. userStatistics - Show stats");
-        AddText("13. saveUsers - Save to file");
-        AddText("14. loadUsers - Load from file");
-        AddText("");
-        
-        // Show current user count
-        int count = 0;
-        for (int i = 0; i < MAX_USERS; i++) {
-            if (users[i].state != 999) count++;
-        }
-        
-        char countMsg[50] = "Current users in system: ";
-        // Convert count to string
-        char numStr[10];
-        int temp = count;
-        int pos = 0;
-        
-        if (temp == 0) {
-            numStr[0] = '0';
-            numStr[1] = '\0';
-            pos = 1;
-        } else {
-            char tempStr[10];
-            int d = 0;
-            while (temp > 0) {
-                tempStr[d++] = (temp % 10) + '0';
-                temp /= 10;
-            }
-            // Reverse
-            for (int i = 0; i < d; i++) {
-                numStr[i] = tempStr[d - 1 - i];
-            }
-            numStr[d] = '\0';
-            pos = d;
-        }
-        
-        // Add number to message
-        for (int i = 0; i < pos; i++) {
-            countMsg[25 + i] = numStr[i];
-        }
-        countMsg[25 + pos] = '\0';
-        AddText(countMsg);
-        
-    }
-    else if (buffer[0] == '2' || strstr(buffer, "Math")) {
-        // Math Tools features
-        AddText("=== MATH & SECURITY TOOLS ===");
-        AddText("");
-        AddText("Available Functions:");
-        AddText("-------------------");
-        AddText("1. isEven - Check if number is even");
-        AddText("2. isPrime - Check for prime number");
-        AddText("3. gcd - Greatest common divisor");
-        AddText("4. lcm - Least common multiple");
-        AddText("5. modExp - Modular exponentiation");
-        AddText("6. factorial - Calculate factorial");
-        AddText("7. sumDigits - Sum of digits");
-        AddText("8. reverseNumber - Reverse digits");
-        AddText("9. isPalindromeNumber - Check palindrome");
-        AddText("10. sumDivisors - Sum of divisors");
-        AddText("11. isPerfectNumber - Check perfect number");
-        AddText("12. isArmstrong - Check Armstrong number");
-        AddText("13. randomNumber - Generate random number");
-        AddText("14. sumArray - Sum array elements");
-        AddText("15. averageArray - Calculate average");
-        AddText("16. maxArray - Find maximum value");
-        AddText("17. minArray - Find minimum value");
-        AddText("18. sortAscending - Sort array");
-        AddText("19. displayMatrix - Show matrix");
-        AddText("20. addMatrices - Matrix addition");
-        AddText("21. multiplyMatrices - Matrix multiplication");
-        AddText("22. transposeMatrix - Matrix transpose");
-        AddText("23. determinant2x2 - 2x2 determinant");
-        AddText("24. isSymmetric - Check symmetric matrix");
-        AddText("25. isIdentity - Check identity matrix");
-        AddText("");
-        
-        // Show some test results
-        AddText("Quick Tests:");
-        AddText("------------");
-        
-        // Test 1: isPrime
-        char primeTest[50] = "isPrime(17) = ";
-        // Manually check prime instead of calling function (to avoid compilation issues)
-        int prime = 1;
-        for (int i = 2; i <= 17/2; i++) {
-            if (17 % i == 0) {
-                prime = 0;
+                    // ---------- NUMBER TOOLS ----------
+                    static char numberInput[16] = "";
+                    static char numberOutput[64] = "";
+                    static bool editNumber = false;   // ← PUT HERE
+
+                    // ---------- ARRAY TOOLS ----------
+                    static int arraySize = 5;
+                    static char array[10][6] = {0};
+                    static char arrayResult[64] = "";
+                    static bool editArray[10] = {0};  // ← PUT HERE
+
+                    DrawText("MTHSEC - Math & Security Tools", 260, 25, 26, DARKGRAY);
+
+                    // Section selector
+                    if (GuiButton((Rectangle){50, 70, 150, 35}, "Numbers"))
+                        currentMath = MTH_NUMBERS;
+
+                    if (GuiButton((Rectangle){220, 70, 150, 35}, "Arrays"))
+                        currentMath = MTH_ARRAYS;
+
+                    if (GuiButton((Rectangle){390, 70, 150, 35}, "Matrices"))
+                        currentMath = MTH_MATRICES;
+
+                    // ---------------- NUMBERS ----------------
+                    if (currentMath == MTH_NUMBERS)
+                    {
+                        GuiPanel((Rectangle){50, 130, 800, 400}, "Number Tools");
+
+                        GuiLabel((Rectangle){70, 170, 80, 20}, "Number:");
+
+                        Rectangle numRect = {150, 165, 160, 30};
+
+                        if (GuiTextBox(numRect, numberInput, 15, editNumber) || editNumber)
+                        {
+                            if (CheckCollisionPointRec(mousePoint, numRect) &&
+                                IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                editNumber = true;
+                        }
+                        else editNumber = false;
+                        
+
+                        if (!CheckCollisionPointRec(mousePoint, numRect) &&
+                            IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                            editNumber = false;
+
+                        if (GuiButton((Rectangle){100, 215, 200, 35}, "Check Prime"))
+                        {
+                            if(isPrime(atoi(numberInput)) == 1 ){
+                                stringModify(numberOutput,"Yes");
+                            }
+                            else stringModify(numberOutput, "No");
+                        }
+
+                        if (GuiButton((Rectangle){100, 260, 200, 35}, "Factorial"))
+                        {
+                            int fact = factorial(atoi(numberInput));
+                            sprintf(numberOutput, "%d", fact);
+                        }
+                        
+                        if (GuiButton((Rectangle){100, 305, 200, 35}, "Check Even"))
+                        {
+                            if(isEven(atoi(numberInput)) == 1 ){
+                                stringModify(numberOutput,"Yes");
+                            }
+                            else stringModify(numberOutput, "No");
+                        }
+
+                        if (GuiButton((Rectangle){100, 350, 200, 35}, "Sum Digits"))
+                        {   
+                            sprintf(numberOutput, "%d", sumDigits(atoi(numberInput)));
+                        }
+
+                        if (GuiButton((Rectangle){350, 215, 200, 35}, "Check Perfect Number"))
+                        {
+                            if(isPerfectNumber(atoi(numberInput)) == 1 ){
+                                stringModify(numberOutput,"Yes");
+                            }
+                            else stringModify(numberOutput, "No");
+                        }
+
+                        if (GuiButton((Rectangle){350, 260, 200, 35}, "is Palindrome"))
+                        {
+                            if(isPalindromeNumber(atoi(numberInput)) == 1 ){
+                                stringModify(numberOutput,"Yes");
+                            }
+                            else stringModify(numberOutput, "No");
+
+                        }
+
+                        if (GuiButton((Rectangle){350, 305, 200, 35}, "Sum Divisors"))
+                        {
+                            sprintf(numberOutput, "%d", sumDivisors(atoi(numberInput)));
+                        }
+
+                        if (GuiButton((Rectangle){350, 350, 200, 35}, "Reverse"))
+                        {
+                            sprintf(numberOutput, "%d", reverseNumber(atoi(numberInput)));
+                        }
+
+                        if (GuiButton((Rectangle){600, 215, 200, 35}, "is Armstrong"))
+                        {
+                            if(isArmstrong(atoi(numberInput)) == 1 ){
+                                stringModify(numberOutput,"Yes");
+                            }
+                            else stringModify(numberOutput, "No");
+                        }
+
+                      //  if (GuiButton((Rectangle){600, 260, 200, 35}, "Generate Random"))
+                      //  {
+
+                      //  }
+
+                      //  if (GuiButton((Rectangle){600, 305, 200, 35}, "Check Prime"))
+                      // {
+
+                      //  }
+
+                      //  if (GuiButton((Rectangle){600, 350, 200, 35}, "Factorial"))
+                      //  {
+
+                      //  }
+
+                        GuiLabel((Rectangle){500, 170, 260, 20}, numberOutput);
+                        if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                        currentScreen = SCREEN_MAIN_MENU;
+                    }
+
+                    // ---------------- ARRAYS ----------------
+                    if (currentMath == MTH_ARRAYS)
+                    {
+                        GuiPanel((Rectangle){50, 130, 520, 320}, "Array Tools");
+
+                        GuiLabel((Rectangle){70, 165, 60, 20}, "Size:");
+                        GuiSpinner((Rectangle){130, 160, 60, 30},
+                                NULL, &arraySize, 1, 10, false);
+
+                        for (int i = 0; i < arraySize; i++)
+                        {
+                            Rectangle arrRect = {70 + i * 45, 210, 40, 30};
+
+                            if (GuiTextBox(arrRect, array[i], 5, editArray[i]) || editArray[i])
+                            {
+                                if (CheckCollisionPointRec(mousePoint, arrRect) &&
+                                    IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                {
+                                    // Unfocus others
+                                    for (int j = 0; j < 10; j++)
+                                        editArray[j] = false;
+
+                                    editArray[i] = true;
+                                }
+                            }
+                            else editArray[i] = false;
+
+                            if (!CheckCollisionPointRec(mousePoint, arrRect) &&
+                                IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                editArray[i] = false;
+                        }
+
+                        if (GuiButton((Rectangle){100, 270, 150, 35}, "Sum"))
+                        {
+                            int nums[10] = {0};
+
+                        // Convert text input to integers
+                        for (int i = 0; i < arraySize; i++)
+                            nums[i] = atoi(array[i]);
+
+                        int sum = sumArray(nums, arraySize);
+                        sprintf(arrayResult,"%d",sum);
+                        }
+
+                        if (GuiButton((Rectangle){100, 325, 150, 35}, "Max"))
+                        {
+                            int nums[10] = {0};
+
+                        // Convert text input to integers
+                        for (int i = 0; i < arraySize; i++)
+                            nums[i] = atoi(array[i]);
+
+                        int max = maxArray(nums, arraySize);
+                        sprintf(arrayResult,"%d",max);
+                        }
+
+                        if (GuiButton((Rectangle){270, 325, 150, 35}, "Min"))
+                        {
+                            int nums[10] = {0};
+
+                        // Convert text input to integers
+                        for (int i = 0; i < arraySize; i++)
+                            nums[i] = atoi(array[i]);
+
+                        int min = maxArray(nums, arraySize);
+                        sprintf(arrayResult,"%d",min);
+                        }
+
+                        if (GuiButton((Rectangle){185, 380, 150, 35}, "Average"))
+                        {
+                            int nums[10] = {0};
+
+                        // Convert text input to integers
+                        for (int i = 0; i < arraySize; i++)
+                            nums[i] = atoi(array[i]);
+
+                        float avg = averageArray(nums, arraySize);
+                        sprintf(arrayResult,"%.3f",avg);
+                        }
+
+                        if (GuiButton((Rectangle){270, 270, 150, 35}, "Sort"))
+                        {
+                           int nums[10] = {0};
+
+                        // Convert text input to integers
+                        for (int i = 0; i < arraySize; i++)
+                            nums[i] = atoi(array[i]);
+
+                        sortAscending(nums,arraySize);
+
+                        // Convert back to strings
+                        for (int i = 0; i < arraySize; i++)
+                            sprintf(array[i], "%d", nums[i]);
+
+                        stringModify(arrayResult, "Sorted");
+                        }
+
+                        GuiLabel((Rectangle){300, 165, 300, 20}, arrayResult);
+                        if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                        currentScreen = SCREEN_MAIN_MENU;
+                    }
+
+                    // ---------------- MATRICES ----------------
+
+                    if (currentMath == MTH_MATRICES)
+                    {
+                        static int rowsA = 2, colsA = 2;
+                        static int rowsB = 2, colsB = 2;
+
+                        static char matA[5][5][6] = {0};
+                        static char matB[5][5][6] = {0};
+                        static char matR[5][5][6] = {0};
+                        static char Result[32] = "";
+
+                        static bool editMatA[5][5] = {0};
+                        static bool editMatB[5][5] = {0};
+
+                        DrawText("Matrix Dimensions", 50, 130, 18, DARKGRAY);
+
+                        // -------- Matrix A size --------
+                        GuiLabel((Rectangle){50, 160, 80, 20}, "A Rows:");
+                        GuiSpinner((Rectangle){120, 155, 60, 30},
+                                NULL, &rowsA, 1, 5, false);
+
+                        GuiLabel((Rectangle){200, 160, 80, 20}, "A Cols:");
+                        GuiSpinner((Rectangle){270, 155, 60, 30},
+                                NULL, &colsA, 1, 5, false);
+
+                        // -------- Matrix B size --------
+                        GuiLabel((Rectangle){350, 160, 80, 20}, "B Rows:");
+                        GuiSpinner((Rectangle){420, 155, 60, 30},
+                                NULL, &rowsB, 1, 5, false);
+
+                        GuiLabel((Rectangle){500, 160, 80, 20}, "B Cols:");
+                        GuiSpinner((Rectangle){570, 155, 60, 30},
+                                NULL, &colsB, 1, 5, false);
+
+                        // -------- Matrix A --------
+                        GuiPanel((Rectangle){40, 200, 260, 260}, "Matrix A");
+
+                        for (int i = 0; i < rowsA; i++)
+                        {
+                            for (int j = 0; j < colsA; j++)
+                            {
+                                Rectangle rectA = {60 + j * 45, 240 + i * 40, 40, 30};
+
+                                if (GuiTextBox(rectA, matA[i][j], 5, editMatA[i][j]) || editMatA[i][j])
+                                {
+                                    if (CheckCollisionPointRec(mousePoint, rectA) &&
+                                        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                    {
+                                        // unfocus all first
+                                        for (int x = 0; x < 5; x++)
+                                            for (int y = 0; y < 5; y++)
+                                            {
+                                                editMatA[x][y] = false;
+                                                editMatB[x][y] = false;
+                                            }
+
+                                        editMatA[i][j] = true;
+                                    }
+                                }
+                                else editMatA[i][j] = false;
+
+                                if (!CheckCollisionPointRec(mousePoint, rectA) &&
+                                    IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                    editMatA[i][j] = false;
+                            }
+                        }
+
+                        // -------- Matrix B --------
+                        GuiPanel((Rectangle){330, 200, 260, 260}, "Matrix B");
+
+                        for (int i = 0; i < rowsB; i++)
+                        {
+                            for (int j = 0; j < colsB; j++)
+                            {
+                                Rectangle rectB = {350 + j * 45, 240 + i * 40, 40, 30};
+
+                                if (GuiTextBox(rectB, matB[i][j], 5, editMatB[i][j]) || editMatB[i][j])
+                                {
+                                    if (CheckCollisionPointRec(mousePoint, rectB) &&
+                                        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                    {
+                                        // unfocus all first
+                                        for (int x = 0; x < 5; x++)
+                                            for (int y = 0; y < 5; y++)
+                                            {
+                                                editMatA[x][y] = false;
+                                                editMatB[x][y] = false;
+                                            }
+
+                                        editMatB[i][j] = true;
+                                    }
+                                }
+                                else editMatB[i][j] = false;
+
+                                if (!CheckCollisionPointRec(mousePoint, rectB) &&
+                                    IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                    editMatB[i][j] = false;
+                            }
+                        }
+
+                        struct Matrix_ matA_ ; matA_.n = rowsA; matA_.p = colsA;
+                        struct Matrix_ matB_ ; matB_.n = rowsB; matB_.p = colsB;
+                        struct Matrix_ matR_ ;
+
+                        for (int i = 0; i < rowsA; i++)
+                            for (int j = 0; j < colsA; j++)
+                                matA_.data[i][j] = atoi(matA[i][j]);
+
+                        for (int i = 0; i < rowsB; i++)
+                            for (int j = 0; j < colsB; j++)
+                                matB_.data[i][j] = atoi(matB[i][j]);
+
+                        // -------- Result --------
+                        GuiPanel((Rectangle){620, 200, 260, 260}, "Result");
+
+                        for (int i = 0; i < 5; i++)
+                            for (int j = 0; j < 5; j++)
+                                GuiLabel(
+                                    (Rectangle){640 + j * 45, 240 + i * 40, 40, 20},
+                                    matR[i][j]
+                                );
+
+                        // -------- Operations --------
+                        if (GuiButton((Rectangle){180, 480, 100, 35}, "Add"))
+                        {
+                            addMatrices(matA_, matB_, &matR_ );
+                            for (int i = 0; i < matR_.n; i++)
+                                for (int j = 0; j < matR_.p; j++)
+                                    sprintf(matR[i][j], "%d", matR_.data[i][j]);
+                        }
+
+                        if (GuiButton((Rectangle){300, 480, 100, 35}, "Multiply"))
+                        {
+                            multiplyMatrices(matA_, matB_, &matR_);
+                            for (int i = 0; i < matR_.n; i++)
+                                for (int j = 0; j < matR_.p; j++)
+                                    sprintf(matR[i][j], "%d", matR_.data[i][j]);
+                        }
+
+                        if (GuiButton((Rectangle){420, 480, 120, 35}, "Transpose A"))
+                        {
+                            transposeMatrix(matA_, &matR_);
+                            for (int i = 0; i < matR_.n; i++)
+                                for (int j = 0; j < matR_.p; j++)
+                                    sprintf(matR[i][j], "%d", matR_.data[i][j]);
+                        }
+
+                        if (GuiButton((Rectangle){550, 480, 120, 35}, "Is Identity?"))
+                        {
+                            if (isIdentity(matA_) == 1) // your function
+                                stringModify(Result, "Yes");
+                            else
+                                stringModify(Result, "No");
+                        }
+
+                        if (GuiButton((Rectangle){680, 480, 140, 35}, "Determinant 2x2"))
+                        {
+                            if(rowsA == 2 && colsA == 2){
+                                int temp[2][2];
+                                for(int i =0; i <2; i++){
+                                    for(int j =0; j<2; j++){
+                                        temp[i][j] = matA_.data[i][j];
+                                    }
+                                }
+                                int det = determinant2x2(temp); // your function
+                                sprintf(Result, "%d", det);
+                            }
+                            else stringModify(Result, "Matrix isnt 2x2");
+                        }
+
+                        GuiLabel((Rectangle){680, 525, 280, 20}, Result);
+
+                        if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                        currentScreen = SCREEN_MAIN_MENU;
+                    }
+                }
                 break;
-            }
-        }
-        strcat(primeTest, prime ? "PRIME" : "NOT PRIME");
-        AddText(primeTest);
-        
-        // Test 2: gcd
-        char gcdTest[50] = "gcd(48, 18) = ";
-        // Calculate gcd manually
-        int a = 48, b = 18;
-        while (a % b != 0) {
-            int rem = a % b;
-            a = b;
-            b = rem;
-        }
-        char gcdStr[10];
-        int temp = b;
-        int pos = 0;
-        
-        if (temp == 0) {
-            gcdStr[0] = '0';
-            gcdStr[1] = '\0';
-            pos = 1;
-        } else {
-            char tempStr[10];
-            int d = 0;
-            while (temp > 0) {
-                tempStr[d++] = (temp % 10) + '0';
-                temp /= 10;
-            }
-            // Reverse
-            for (int i = 0; i < d; i++) {
-                gcdStr[i] = tempStr[d - 1 - i];
-            }
-            gcdStr[d] = '\0';
-            pos = d;
-        }
-        
-        // Add to gcdTest
-        for (int i = 0; i < pos; i++) {
-            gcdTest[13 + i] = gcdStr[i];
-        }
-        gcdTest[13 + pos] = '\0';
-        AddText(gcdTest);
-        
-    }
-    else if (buffer[0] == '3' || strstr(buffer, "Security Audit")) {
-        // Security Audit features
-        AddText("=== SECURITY AUDIT & ANALYSIS ===");
-        AddText("");
-        AddText("Available Functions:");
-        AddText("-------------------");
-        AddText("1. countUppercase - Count uppercase letters");
-        AddText("2. countLowercase - Count lowercase letters");
-        AddText("3. countDigits - Count digits");
-        AddText("4. percentUppercase - Percentage uppercase");
-        AddText("5. textLength - Get text length");
-        AddText("6. displayTextStats - Show text statistics");
-        AddText("7. veryStrongPassword - Check very strong password");
-        AddText("8. generateKey - Generate random key");
-        AddText("9. isHexKey - Check hexadecimal format");
-        AddText("10. generateRandomPassword - Generate password");
-        AddText("11. passwordScore - Calculate password score");
-        AddText("12. averageScore - Average password score");
-        AddText("13. displaySecurityReport - Show security report");
-        AddText("14. countStrongUsers - Count users with strong passwords");
-        AddText("15. showSecurityTips - Display security tips");
-        AddText("16. checkEmailFormat - Validate email format");
-        AddText("17. checkLoginFormat - Validate login format");
-        AddText("18. generateHexKey - Generate hex key");
-        AddText("19. top3Passwords - Show top 3 passwords");
-        AddText("20. globalSecurityLevel - Calculate global security level");
-        AddText("");
-        
-        // Show password test
-        AddText("Password Test:");
-        AddText("--------------");
-        AddText("Testing password: 'Password123!'");
-        
-        // Manually calculate password score (simplified)
-        char* testPass = "Password123!";
-        int length = 0;
-        while (testPass[length] != '\0') length++;
-        
-        int hasUpper = 0, hasLower = 0, hasDigit = 0, hasSpecial = 0;
-        for (int i = 0; i < length; i++) {
-            if (testPass[i] >= 'A' && testPass[i] <= 'Z') hasUpper = 1;
-            if (testPass[i] >= 'a' && testPass[i] <= 'z') hasLower = 1;
-            if (testPass[i] >= '0' && testPass[i] <= '9') hasDigit = 1;
-            if (testPass[i] == '!' || testPass[i] == '@' || testPass[i] == '#') hasSpecial = 1;
-        }
-        
-        int score = 30; // Base
-        score += (length - 8) * 2; // Length bonus
-        if (hasUpper) score += 20;
-        if (hasLower) score += 20;
-        if (hasDigit) score += 15;
-        if (hasSpecial) score += 15;
-        
-        if (score > 100) score = 100;
-        
-        char scoreMsg[50] = "Estimated score: ";
-        char scoreStr[10];
-        int temp = score;
-        int pos = 0;
-        
-        if (temp == 0) {
-            scoreStr[0] = '0';
-            scoreStr[1] = '\0';
-            pos = 1;
-        } else {
-            char tempStr[10];
-            int d = 0;
-            while (temp > 0) {
-                tempStr[d++] = (temp % 10) + '0';
-                temp /= 10;
-            }
-            // Reverse
-            for (int i = 0; i < d; i++) {
-                scoreStr[i] = tempStr[d - 1 - i];
-            }
-            scoreStr[d] = '\0';
-            pos = d;
-        }
-        
-        // Add to message
-        for (int i = 0; i < pos; i++) {
-            scoreMsg[17 + i] = scoreStr[i];
-        }
-        scoreMsg[17 + pos] = '/';
-        scoreMsg[18 + pos] = '1';
-        scoreMsg[19 + pos] = '0';
-        scoreMsg[20 + pos] = '0';
-        scoreMsg[21 + pos] = '\0';
-        AddText(scoreMsg);
-        
-    }
-    else {
-        // Other libraries (coming soon)
-        AddText("=== LIBRARY IN DEVELOPMENT ===");
-        AddText("");
-        AddText("This library is not implemented yet!");
-        AddText("Check back later for updates.");
-        AddText("");
-        AddText("Press GO button again to select another library.");
-    }
-    
-    // Add back button instruction
-    AddText("");
-    AddText("=================================");
-    AddText("Press GO button to return to main menu");
-}
-void ReturnToMainMenu() {
-    LoadLibraryList();
-}
+                case SCREEN_USRMGMT:
+                {
+                    static char username[21] = "";
+                    static char password[21] = "";
+                    static int role = 0; // 0: user, 1: admin
+                    static char outputText[1024] = "";
+                    static char login[100]  = "";
 
-void ShowUserManagementMenu(void) {
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    
-    AddText("=== USER MANAGEMENT FUNCTIONS ===");
-    AddText("");
-    AddText("Select a function:");
-    AddText("------------------");
-    AddText("1. View All Users");
-    AddText("2. Add New User");
-    AddText("3. Delete User");
-    AddText("4. Search User");
-    AddText("5. Change Password");
-    AddText("6. Block/Unblock User");
-    AddText("7. Change User Role");
-    AddText("8. User Statistics");
-    AddText("9. Save Users to File");
-    AddText("10. Load Users from File");
-    AddText("");
-    AddText("Press GO to execute selected function");
-    AddText("or double-click a function");
-}
+                    DrawText("USRMGMT - User Management", 280, 40, 26, DARKGRAY);
 
-void ExecuteSelectedFunction(void) {
-    int selected = SendMessageA(hListBox, LB_GETCURSEL, 0, 0);
-    
-    if (selected == LB_ERR) {
-        MessageBoxA(hListBox, "Please select a function first!", "No Selection", MB_OK);
-        return;
-    }
-    
-    char buffer[100];
-    SendMessageA(hListBox, LB_GETTEXT, selected, (LPARAM)buffer);
-    
-    // Get first line to know which library we're in
-    char firstLine[100];
-    SendMessageA(hListBox, LB_GETTEXT, 0, (LPARAM)firstLine);
-    
-    if (strstr(firstLine, "USER MANAGEMENT")) {
-        // User Management functions
-        if (strstr(buffer, "View All Users")) {
-            // Call your displayUsers function
-            // We'll implement this next
-            ShowAllUsers();
-        }
-        else if (strstr(buffer, "Add New User")) {
-            // We'll create the add user dialog here
-            ShowAddUserDialog();
-        }
-        // ... other user functions
-    }
-    else if (strstr(firstLine, "MATH & SECURITY TOOLS")) {
-        // Math functions
-        if (strstr(buffer, "Prime Check")) {
-            ShowPrimeCheckDialog();
-        }
-        // ... other math functions
-    }
-    // ... etc for other libraries
-}
+                    // Input panel
+                    GuiPanel((Rectangle){50, 100, 350, 220}, "Input");
 
-void ShowAllUsers(void) {
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    
-    AddText("=== ALL USERS ===");
-    AddText("");
-    
-    int userCount = 0;
-    int activeCount = 0;
-    
-    for (int i = 0; i < MAX_USERS; i++) {
-        if (users[i].state != 999) { // Not deleted
-            userCount++;
-            
-            char userLine[100];
-            
-            // Number
-            char numStr[10];
-            int temp = userCount;
-            int pos = 0;
-            
-            if (temp == 0) {
-                numStr[0] = '0';
-                numStr[1] = '\0';
-                pos = 1;
-            } else {
-                char tempStr[10];
-                int d = 0;
-                while (temp > 0) {
-                    tempStr[d++] = (temp % 10) + '0';
-                    temp /= 10;
+                    GuiLabel((Rectangle){60, 130, 80, 20}, "Username:");
+                    static bool editUsername = false;
+                    static bool editPassword = false;
+                    if (GuiTextBox((Rectangle){60, 155, 330, 30}, username, 20, editUsername)) {
+                        editUsername = true;
+                        editPassword = false;  // unfocus other field
+                    }
+
+                    GuiLabel((Rectangle){60, 195, 80, 20}, "Password:");
+                    
+                    if (GuiTextBox((Rectangle){60, 220, 330, 30}, password, 20, editPassword)) {
+                        editPassword = true;
+                        editUsername = false; // unfocus other field
+                    }
+
+                    GuiLabel((Rectangle){60, 260, 80, 20}, "Role:");
+                    if (GuiButton((Rectangle){60, 285, 100, 30}, role == 0 ? "[X] User" : "[ ] User")) role = 0;
+                    if (GuiButton((Rectangle){170, 285, 100, 30}, role == 1 ? "[X] Admin" : "[ ] Admin")) role = 1;
+
+                    // Action buttons column
+                    int buttonX = 420;
+                    int buttonY = 150;
+                    int buttonW = 200;
+                    int buttonH = 35;
+                    int buttonSpacing = 50;
+
+                    if (GuiButton((Rectangle){buttonX, buttonY + 0 * buttonSpacing, buttonW, buttonH}, "Add User")) {
+                        for (int i = 0; i < MAX_USERS; i++) {
+                            if (users[i].state == 999) { // empty slot
+                                stringModifyN(users[i].name, username, 20);
+                                stringModifyN(users[i].password, password, 20);
+                                users[i].role = role;
+                                users[i].state = 0;
+                                break;
+                            }
+                        }
+                    }
+                    if (GuiButton((Rectangle){buttonX, buttonY + 1 * buttonSpacing, buttonW, buttonH}, "Delete User")) { 
+                        deleteUser(users, MAX_USERS, username);
+                    }
+                    if (GuiButton((Rectangle){buttonX, buttonY + 2 * buttonSpacing, buttonW, buttonH}, "Change Password")) { 
+                        changePassword(users, MAX_USERS, username, password);
+                    }
+                    if (GuiButton((Rectangle){buttonX, buttonY + 3 * buttonSpacing, buttonW, buttonH}, "Block User")) { 
+                        blockUser(users, MAX_USERS, username);
+                    }
+                    if (GuiButton((Rectangle){buttonX, buttonY + 4 * buttonSpacing, buttonW, buttonH}, "Unblock User")) {
+                        unblockUser(users, MAX_USERS, username);
+                     }
+
+                     if (GuiButton((Rectangle){buttonX, buttonY + 5 * buttonSpacing, buttonW, buttonH}, "Save Users")) {
+                        saveUsers(users, MAX_USERS);
+                    }
+
+                    if (GuiButton((Rectangle){buttonX, buttonY + 6 * buttonSpacing, buttonW, buttonH}, "Load Users")) {
+                        loadUsers(users, MAX_USERS);
+                    }
+
+                    if (GuiButton((Rectangle){buttonX, buttonY + 7 * buttonSpacing, buttonW, buttonH}, "Global Security Level")) {
+                        userStatistics(users,MAX_USERS);
+                        stringModify(outputText,"User Statistics exported to user_stats.dat");
+
+                    }
+
+                    if (GuiButton((Rectangle){buttonX + buttonW+20, buttonY + 0* buttonSpacing, buttonW, buttonH}, "Login")) {
+                        int l = checkLogin(users,MAX_USERS,username,password);
+                        switch (l){
+                        case -1: stringModify(login, "User does not exist"); break;
+                        case 0: stringModify(login, "Wrong Password");break;
+                        case 1: stringModify(login, "Login Successfull"); break;
+                        }
+                    }
+
+
+                    DrawText(outputText,buttonX,buttonY - 40,20,BLACK);
+                    DrawText(login, buttonX+buttonW+20, buttonY + 1*buttonSpacing, 20, BLACK);
+
+                    // Output panel
+                    GuiPanel((Rectangle){50, 330, 350, 200}, "Users");
+                        int startY = 355;
+                        int lineHeight = 20;
+                        for (int i = 0; i < MAX_USERS; i++) {
+                            if (users[i].state != 999) { // not deleted
+                                char line[100];
+                                snprintf(line, sizeof(line), "%s | Role: %s | State: %s",
+                                        users[i].name,
+                                        users[i].role == 1 ? "Admin" : "User",
+                                        users[i].state == 1 ? "Blocked" : "Active");
+                                DrawText(line, 60, startY + i * lineHeight, 14, DARKGRAY);
+                            }
+                        }
+                    // Back button
+                    if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                        currentScreen = SCREEN_MAIN_MENU;
+                } break;
+
+
+                case SCREEN_AUDSEC:
+                {
+                    static bool showOutputWindow = false;
+                    static char outputText[1024] = "";
+
+                    DrawText("AUDSEC - Audit & Security Tools", 260, 25, 26, DARKGRAY);
+
+                    // ---------- TEXT INPUT ----------
+                    static char inputText[128] = "";
+                    static bool editInput = false;
+
+                    Vector2 mousePoint = GetMousePosition();
+
+                    Rectangle inputRect = {50, 100, 400, 30};
+                    GuiLabel((Rectangle){50, 80, 200, 20}, "Enter text / username / password:");
+                    if (GuiTextBox(inputRect, inputText, 127, editInput) || editInput) {
+                        if (CheckCollisionPointRec(mousePoint, inputRect) &&
+                            IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                            editInput = true;
+                        }
+                    } else editInput = false;
+
+                    if (!CheckCollisionPointRec(mousePoint, inputRect) &&
+                        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                        editInput = false;
+
+                    // ---------- BUTTONS ----------
+                    if (GuiButton((Rectangle){50, 150, 200, 35}, "Text Stats")) {
+                        displayTextStats(inputText);          // Your function
+                        stringModify(outputText, "Text stats calculated.\n"); 
+
+                    }
+
+                    if (GuiButton((Rectangle){270, 150, 200, 35}, "Generate Random Key")) {
+                        generateKey(16, outputText);          // Your function
+                    }
+
+                    if (GuiButton((Rectangle){50, 200, 200, 35}, "Generate Random Password")) {
+                        generateRandomPassword(12, outputText);  // Your function
+
+                    }
+
+                    if (GuiButton((Rectangle){270, 200, 200, 35}, "Check Strong Password")) {
+                        if (veryStrongPassword(inputText))
+                            stringModify(outputText, "Password is very strong!");
+                        else
+                            stringModify(outputText, "Password is NOT very strong!");
+
+                    }
+
+                    if (GuiButton((Rectangle){50, 250, 200, 35}, "Top 3 Passwords")) {
+                        top3Passwords(users, MAX_USERS);         // Example, fill outputText inside function
+
+                    }
+
+                    if (GuiButton((Rectangle){270, 250, 200, 35}, "Global Security Level")) {
+                        int level = globalSecurityLevel(users, MAX_USERS);
+                        sprintf(outputText, "Global Security Level: %d%%", level);
+
+                    }
+
+                    if (GuiButton((Rectangle){50, 300, 200, 35}, "Generate Hex Key")) {
+                        generateHexKey(16, outputText);
+
+                    }
+
+                    if (GuiButton((Rectangle){270, 300, 200, 35}, "Check Email Format")) {
+                        int check = checkEmailFormat(inputText);
+                        if(check == 1) stringModify(outputText, "Valid Email");
+                        else stringModify(outputText, "Invalid Email");
+                    }
+
+                    if (GuiButton((Rectangle){50, 350, 200, 35}, "Password Score")) {
+                        sprintf(outputText, "%d", passwordScore(inputText));
+
+                    }
+
+                    if (GuiButton((Rectangle){270, 350, 200, 35}, "Text Length")) {
+                        sprintf(outputText, "%d", textLength(inputText));
+                    }
+
+                    if (GuiButton((Rectangle){50, 400, 200, 35}, "Uppercase percentage")) {
+                        sprintf(outputText, "%%%.2f", percentUppercase(inputText));
+
+                    }
+
+                    if (GuiButton((Rectangle){270, 400, 200, 35}, "Check login Format")) {
+                        int check = checkLoginFormat(inputText);
+                        if(check == 1) stringModify(outputText, "Valid Login");
+                        else stringModify(outputText, "Invalid Login");
+                    }
+
+
+                    DrawText(outputText,500,100,20,BLACK);
+
+                    if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                        currentScreen = SCREEN_MAIN_MENU;
+
                 }
-                // Reverse
-                for (int j = 0; j < d; j++) {
-                    numStr[j] = tempStr[d - 1 - j];
-                }
-                numStr[d] = '\0';
-                pos = d;
-            }
-            
-            // Build line: "1. username (Role) [Status]"
-            userLine[0] = '\0';
-            
-            // Add number
-            for (int j = 0; j < pos; j++) {
-                userLine[j] = numStr[j];
-            }
-            userLine[pos] = '.';
-            userLine[pos + 1] = ' ';
-            
-            // Add username
-            int k = 0;
-            while (users[i].name[k] != '\0' && k < 20) {
-                userLine[pos + 2 + k] = users[i].name[k];
-                k++;
-            }
-            userLine[pos + 2 + k] = ' ';
-            userLine[pos + 3 + k] = '(';
-            
-            // Add role
-            if (users[i].role == 1) {
-                userLine[pos + 4 + k] = 'A';
-                userLine[pos + 5 + k] = 'd';
-                userLine[pos + 6 + k] = 'm';
-                userLine[pos + 7 + k] = 'i';
-                userLine[pos + 8 + k] = 'n';
-                pos += 5;
-            } else {
-                userLine[pos + 4 + k] = 'U';
-                userLine[pos + 5 + k] = 's';
-                userLine[pos + 6 + k] = 'e';
-                userLine[pos + 7 + k] = 'r';
-                pos += 4;
-            }
-            
-            userLine[pos + 9 + k] = ')';
-            userLine[pos + 10 + k] = ' ';
-            userLine[pos + 11 + k] = '[';
-            
-            // Add status
-            if (users[i].state == 0) {
-                userLine[pos + 12 + k] = 'A';
-                userLine[pos + 13 + k] = 'c';
-                userLine[pos + 14 + k] = 't';
-                userLine[pos + 15 + k] = 'i';
-                userLine[pos + 16 + k] = 'v';
-                userLine[pos + 17 + k] = 'e';
-                pos += 6;
-            } else if (users[i].state == 1) {
-                userLine[pos + 12 + k] = 'B';
-                userLine[pos + 13 + k] = 'l';
-                userLine[pos + 14 + k] = 'o';
-                userLine[pos + 15 + k] = 'c';
-                userLine[pos + 16 + k] = 'k';
-                userLine[pos + 17 + k] = 'e';
-                userLine[pos + 18 + k] = 'd';
-                pos += 7;
-            } else {
-                userLine[pos + 12 + k] = 'D';
-                userLine[pos + 13 + k] = 'e';
-                userLine[pos + 14 + k] = 'l';
-                userLine[pos + 15 + k] = 'e';
-                userLine[pos + 16 + k] = 't';
-                userLine[pos + 17 + k] = 'e';
-                userLine[pos + 18 + k] = 'd';
-                pos += 7;
-            }
-            
-            userLine[pos + 19 + k] = ']';
-            userLine[pos + 20 + k] = '\0';
-            
-            AddText(userLine);
-            
-            if (users[i].state == 0) activeCount++;
-        }
-    }
-    
-    if (userCount == 0) {
-        AddText("No users found!");
-    }
-    
-    AddText("");
-    
-    // Show summary
-    char summary[100] = "Total: ";
-    char countStr[10];
-    int temp = userCount;
-    int pos = 0;
-    
-    if (temp == 0) {
-        countStr[0] = '0';
-        countStr[1] = '\0';
-        pos = 1;
-    } else {
-        char tempStr[10];
-        int d = 0;
-        while (temp > 0) {
-            tempStr[d++] = (temp % 10) + '0';
-            temp /= 10;
-        }
-        // Reverse
-        for (int j = 0; j < d; j++) {
-            countStr[j] = tempStr[d - 1 - j];
-        }
-        countStr[d] = '\0';
-        pos = d;
-    }
-    
-    // Add to summary
-    for (int j = 0; j < pos; j++) {
-        summary[7 + j] = countStr[j];
-    }
-    summary[7 + pos] = ' ';
-    summary[8 + pos] = 'u';
-    summary[9 + pos] = 's';
-    summary[10 + pos] = 'e';
-    summary[11 + pos] = 'r';
-    summary[12 + pos] = 's';
-    summary[13 + pos] = ' ';
-    summary[14 + pos] = '(';
-    
-    // Add active count
-    temp = activeCount;
-    pos = 0;
-    if (temp == 0) {
-        countStr[0] = '0';
-        countStr[1] = '\0';
-        pos = 1;
-    } else {
-        char tempStr[10];
-        int d = 0;
-        while (temp > 0) {
-            tempStr[d++] = (temp % 10) + '0';
-            temp /= 10;
-        }
-        // Reverse
-        for (int j = 0; j < d; j++) {
-            countStr[j] = tempStr[d - 1 - j];
-        }
-        countStr[d] = '\0';
-        pos = d;
-    }
-    
-    for (int j = 0; j < pos; j++) {
-        summary[15 + j] = countStr[j];
-    }
-    summary[15 + pos] = ' ';
-    summary[16 + pos] = 'a';
-    summary[17 + pos] = 'c';
-    summary[18 + pos] = 't';
-    summary[19 + pos] = 'i';
-    summary[20 + pos] = 'v';
-    summary[21 + pos] = 'e';
-    summary[22 + pos] = ')';
-    summary[23 + pos] = '\0';
-    
-    AddText(summary);
-    AddText("");
-    AddText("Press GO to return to User Management menu");
-    
-}
+                break;
 
-// Stub implementations for unimplemented functions
-void ShowMathToolsMenu(void) {
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    AddText("=== MATH TOOLS FUNCTIONS ===");
-    AddText("");
-    AddText("Coming Soon!");
-    AddText("");
-    AddText("Press GO to return to main menu");
-}
+            case SCREEN_LOGMGMT:
+                DrawText("LOGMGMT MODULE (placeholder)",
+                         260, 280, 20, GRAY);
+                if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                    currentScreen = SCREEN_MAIN_MENU;
+                break;
 
-void ShowAuditMenu(void) {
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    AddText("=== SECURITY AUDIT FUNCTIONS ===");
-    AddText("");
-    AddText("Coming Soon!");
-    AddText("");
-    AddText("Press GO to return to main menu");
-}
+            case SCREEN_HELP:
+                DrawText("HELP",
+                         420, 80, 26, DARKGRAY);
 
-void ShowAddUserDialog(void) {
-    // Simple implementation for now - we'll make it better
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    AddText("=== ADD NEW USER ===");
-    AddText("");
-    AddText("This feature is under construction!");
-    AddText("");
-    AddText("For now, using default user data...");
-    
-    // Find first empty slot
-    int slot = -1;
-    for (int i = 0; i < MAX_USERS; i++) {
-        if (users[i].state == 999) { // Deleted slot
-            slot = i;
-            break;
+                DrawText(
+                    "This application is a graphical interface for\n"
+                    "the Security Utility Library System project.\n\n"
+                    "Each module corresponds to a C library:\n"
+                    "- ENCDEC : Encryption & Decryption\n"
+                    "- MTHSEC : Math & Security Tools\n"
+                    "- USRMGMT: User Management\n"
+                    "- AUDSEC : Audit & Security Analysis\n"
+                    "- LOGMGMT: Log Management\n\n"
+                    "Developed by Dellali Abdelhamid and Lehlouh Abdeljalil.",
+                    180, 140, 18, GRAY
+                );
+
+                if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                    currentScreen = SCREEN_MAIN_MENU;
+                break;
         }
-    }
-    
-    if (slot == -1) {
-        AddText("ERROR: User database full!");
-    } else {
-        // Add a test user
-        stringModify(users[slot].name, "TestUser");
-        stringModify(users[slot].password, "Password123!");
-        users[slot].role = 0; // Regular user
-        users[slot].state = 0; // Active
-        
-        AddText("Test user added: TestUser");
-        AddText("Password: Password123!");
-        AddText("Role: Regular User");
-        AddText("Status: Active");
-    }
-    
-    AddText("");
-    AddText("Press GO to return to User Management");
-}
 
-void ShowPrimeCheckDialog(void) {
-    SendMessageA(hListBox, LB_RESETCONTENT, 0, 0);
-    AddText("=== PRIME NUMBER CHECKER ===");
-    AddText("");
-    AddText("Coming Soon!");
-    AddText("");
-    AddText("Press GO to return to Math Tools menu");
+        EndDrawing();
+    }
+
+    CloseWindow();
+    return 0;
 }

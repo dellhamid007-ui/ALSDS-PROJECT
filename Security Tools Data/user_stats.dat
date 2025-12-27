@@ -1,0 +1,16 @@
+USER STATISTICS REPORT
+======================
+
+Total records: 100
+Actual users: 1
+
+User Distribution:
+  Administrators: 0 (0.0%)
+  Regular users: 1 (100.0%)
+  Blocked users: 0 (0.0%)
+  Active users: 1 (100.0%)
+
+Security Analysis:
+  Strong passwords: 0 (0.0%)
+  Weak passwords: 1 (100.0%)
+

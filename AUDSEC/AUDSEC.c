@@ -50,6 +50,7 @@ int countLowercase(char text[]){
 
 
 float percentUppercase(char text[]){
+    if(textLength(text) == 0) return 0;
     float percentage = ((float)countUppercase(text)/(float)textLength(text))*100;
 
     return percentage;

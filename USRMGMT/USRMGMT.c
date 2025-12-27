@@ -99,7 +99,6 @@ int searchUser(struct User users[], int n, char name[]){
 }
 
 void deleteUser(struct User users[], int n, char *name){
-    printf("Enter the User you want to delete: "); scanf("%19s", name);
 
     int usrIndex = searchUser(users, n, name) - 1;
     if(usrIndex<0) return;
@@ -116,11 +115,10 @@ void deleteUser(struct User users[], int n, char *name){
     else printf("ERROR: User Not found\n");
 }
 
-void changePassword(struct User users[], int n, char name[]){
+void changePassword(struct User users[], int n, char name[],char newPass[]){
     int usrIndex = searchUser(users, n, name) - 1;
     if(usrIndex<0) return;
-    char newPass[20];
-    printf("Enter the new password: "); scanf("%s",&newPass);
+
 
     stringModify(users[usrIndex].password, newPass);
     
@@ -292,7 +290,7 @@ void userStatistics(struct User users[], int n){
     printf("  Strong passwords: %d (%.1f%%)\n", strongPass, perStrongPass);
     printf("  Weak passwords: %d (%.1f%%)\n\n", actualUsers - strongPass, 100 - perStrongPass);
 
-    FILE* file = fopen("user_stats.dat", "w");
+    FILE* file = fopen("..\\Security Tools Data\\user_stats.dat", "w");
     if (!file) return;
     fprintf(file, "USER STATISTICS REPORT\n");
     fprintf(file, "======================\n\n");
@@ -323,7 +321,7 @@ const char* PERSON_FORMAT_OUT = "Name: %s  Password: %s  role: %d  state: %d\n";
 
 void saveUsers(struct User users[], int n) {
     FILE* file;
-    fopen_s(&file, "User.dat", "w");
+    fopen_s(&file, "..\\Security Tools Data\\User.dat", "w");
     
     if (file == NULL) {
         printf("Cannot open for writing\n");
@@ -344,7 +342,7 @@ void loadUsers(struct User users[], int n){
 
     FILE* file;
 
-    fopen_s(&file, "User.dat", "r"); 
+    fopen_s(&file, "..\\Security Tools Data\\User.dat", "r"); 
 
     if (file ==NULL){
         printf("Cannot Open User.dat");

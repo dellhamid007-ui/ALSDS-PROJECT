@@ -18,6 +18,8 @@ int sumDigits(int n);
 int reverseNumber(int n);
 int isPalindromeNumber(int n);
 int sumDivisors(int n);
+int isPerfectNumber(int n);
+int isArmstrong(int n);
 int randomNumber(int min, int max);
 int sumArray(int T[], int n);
 float averageArray(int T[],int n);
