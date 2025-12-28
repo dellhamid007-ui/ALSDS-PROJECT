@@ -328,8 +328,10 @@ int main(void)
 
                     // ---------- NUMBER TOOLS ----------
                     static char numberInput[16] = "";
+                    static char numberInput2[16] = "";
                     static char numberOutput[64] = "";
                     static bool editNumber = false;   // ← PUT HERE
+                    static bool editNumber2 = false;
 
                     // ---------- ARRAY TOOLS ----------
                     static int arraySize = 5;
@@ -354,9 +356,12 @@ int main(void)
                     {
                         GuiPanel((Rectangle){50, 130, 800, 400}, "Number Tools");
 
-                        GuiLabel((Rectangle){70, 170, 80, 20}, "Number:");
+                        GuiLabel((Rectangle){70, 170, 80, 20}, "Number 1:");
+
+                        GuiLabel((Rectangle){350, 170, 80, 20}, "Number 2:");
 
                         Rectangle numRect = {150, 165, 160, 30};
+                        Rectangle numRect2 = {430, 165, 160, 30};
 
                         if (GuiTextBox(numRect, numberInput, 15, editNumber) || editNumber)
                         {
@@ -365,11 +370,23 @@ int main(void)
                                 editNumber = true;
                         }
                         else editNumber = false;
+
+                        if (GuiTextBox(numRect2, numberInput2, 15, editNumber2) || editNumber2)
+                        {
+                            if (CheckCollisionPointRec(mousePoint, numRect2) &&
+                                IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                editNumber2 = true;
+                        }
+                        else editNumber2 = false;
                         
 
                         if (!CheckCollisionPointRec(mousePoint, numRect) &&
                             IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                             editNumber = false;
+
+                        if (!CheckCollisionPointRec(mousePoint, numRect2) &&
+                            IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                            editNumber2 = false;
 
                         if (GuiButton((Rectangle){100, 215, 200, 35}, "Check Prime"))
                         {
@@ -433,22 +450,22 @@ int main(void)
                             else stringModify(numberOutput, "No");
                         }
 
-                      //  if (GuiButton((Rectangle){600, 260, 200, 35}, "Generate Random"))
-                      //  {
+                        if (GuiButton((Rectangle){600, 260, 200, 35}, "Generate Random"))
+                        {
+                            sprintf(numberOutput, "%d", randomNumber(atoi(numberInput), atoi(numberInput2)));
+                        }
 
-                      //  }
+                        if (GuiButton((Rectangle){600, 305, 200, 35}, "GCD"))
+                        {
+                            sprintf(numberOutput, "%d", gcd(atoi(numberInput), atoi(numberInput2)));
+                        }
 
-                      //  if (GuiButton((Rectangle){600, 305, 200, 35}, "Check Prime"))
-                      // {
+                        if (GuiButton((Rectangle){600, 350, 200, 35}, "LCM"))
+                        {
+                            sprintf(numberOutput, "%d", lcm(atoi(numberInput), atoi(numberInput2)));
+                        }
 
-                      //  }
-
-                      //  if (GuiButton((Rectangle){600, 350, 200, 35}, "Factorial"))
-                      //  {
-
-                      //  }
-
-                        GuiLabel((Rectangle){500, 170, 260, 20}, numberOutput);
+                        GuiLabel((Rectangle){100, 450, 260, 20}, numberOutput);
                         if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
                         currentScreen = SCREEN_MAIN_MENU;
                     }
@@ -706,6 +723,14 @@ int main(void)
                         if (GuiButton((Rectangle){550, 480, 120, 35}, "Is Identity?"))
                         {
                             if (isIdentity(matA_) == 1) // your function
+                                stringModify(Result, "Yes");
+                            else
+                                stringModify(Result, "No");
+                        }
+
+                        if (GuiButton((Rectangle){50, 480, 120, 35}, "Is Symmetric?"))
+                        {
+                            if (isSymmetric(matA_) == 1) // your function
                                 stringModify(Result, "Yes");
                             else
                                 stringModify(Result, "No");
