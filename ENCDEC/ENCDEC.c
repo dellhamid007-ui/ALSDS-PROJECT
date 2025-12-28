@@ -2,7 +2,7 @@
 # include <string.h>
 # include <stdlib.h>
 # include <ctype.h>
-
+# include <ENCDEC.h>
 
 struct Message{
      char text[200]; // 199 characters(string) + '\0'
