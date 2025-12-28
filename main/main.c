@@ -849,19 +849,59 @@ int main(void)
                     DrawText(login, buttonX+buttonW+20, buttonY + 1*buttonSpacing, 20, BLACK);
 
                     // Output panel
-                    GuiPanel((Rectangle){50, 330, 350, 200}, "Users");
-                        int startY = 355;
-                        int lineHeight = 20;
-                        for (int i = 0; i < MAX_USERS; i++) {
-                            if (users[i].state != 999) { // not deleted
-                                char line[100];
-                                snprintf(line, sizeof(line), "%s | Role: %s | State: %s",
-                                        users[i].name,
-                                        users[i].role == 1 ? "Admin" : "User",
-                                        users[i].state == 1 ? "Blocked" : "Active");
-                                DrawText(line, 60, startY + i * lineHeight, 14, DARKGRAY);
-                            }
+                    // -------- Users list (scrollable) --------
+                    static Vector2 usersScroll = {0, 0};
+
+                    static Rectangle usersView = { 0 };
+
+                    // -------- Users list (scrollpanel, raygui 3.0 compatible) --------
+                    Rectangle usersPanel = { 50, 330, 350, 200 };
+                    GuiPanel(usersPanel, "Users");
+
+                    // Content height depends on number of users
+                    Rectangle usersContent = { 0, 0, 330, MAX_USERS * 22 };
+
+                    // Scroll panel (fills usersView)
+                    GuiScrollPanel(
+                        (Rectangle){ usersPanel.x, usersPanel.y + 25, usersPanel.width, usersPanel.height - 25 },
+                        NULL,
+                        usersContent,
+                        &usersScroll,
+                        &usersView
+                    );
+
+                    // Clip drawing to visible area
+                    BeginScissorMode(
+                        usersView.x,
+                        usersView.y,
+                        usersView.width,
+                        usersView.height
+                    );
+
+                    // Draw users inside scroll area
+                    int y = usersPanel.y + 30 + usersScroll.y;
+
+                    for (int i = 0; i < MAX_USERS; i++)
+                    {
+                        if (users[i].state != 999)
+                        {
+                            char line[128];
+                            snprintf(line, sizeof(line),
+                                "%s | %s | %s",
+                                users[i].name,
+                                users[i].role ? "Admin" : "User",
+                                users[i].state ? "Blocked" : "Active");
+
+                            DrawText(line, usersPanel.x + 10, y, 14, DARKGRAY);
+                            y += 22;
                         }
+                    }
+
+                    EndScissorMode();
+
+
+
+
                     // Back button
                     if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
                         currentScreen = SCREEN_MAIN_MENU;
