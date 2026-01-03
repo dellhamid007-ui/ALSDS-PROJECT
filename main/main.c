@@ -20,7 +20,7 @@ int MeasureTextRecAlt(Font font, const char* text, float fontSize, float spacing
             lineLength = 0;
         } else {
             lineLength++;
-            // Rough wrap check (optional)
+            
             if (MeasureTextEx(font, "W", fontSize, spacing).x * lineLength > wrapWidth) {
                 lines++;
                 lineLength = 0;
@@ -32,7 +32,7 @@ int MeasureTextRecAlt(Font font, const char* text, float fontSize, float spacing
     return (int)(lines * (fontSize + spacing));
 }
 
-void DrawTextRecAlt(Font font, const char* text, Vector2 pos, float fontSize, float spacing, Color color) { //
+void DrawTextRecAlt(Font font, const char* text, Vector2 pos, float fontSize, float spacing, Color color) { 
     int line = 0;
     const char* start = text;
     const char* p = text;
@@ -49,7 +49,7 @@ void DrawTextRecAlt(Font font, const char* text, Vector2 pos, float fontSize, fl
         p++;
     }
 
-    // Draw last line
+    
     if (p != start) {
         DrawTextEx(font, start, (Vector2){pos.x, pos.y + line * (fontSize + spacing)}, fontSize, spacing, color);
     }
@@ -57,16 +57,16 @@ void DrawTextRecAlt(Font font, const char* text, Vector2 pos, float fontSize, fl
 
 
 
-void stringConcat(char dest[], const char src[]) //custom strcat 
+void stringConcat(char dest[], const char src[]) 
 {
     int i = 0;
     int j = 0;
 
-    // Move i to the end of dest
+    
     while (dest[i] != '\0')
         i++;
 
-    // Copy src to the end of dest
+    
     while (src[j] != '\0')
     {
         dest[i] = src[j];
@@ -131,13 +131,13 @@ int main(void)
                 DrawText("Main Menu", 395, 95, 20, GRAY);
 
                 Rectangle buttons[7] = {
-                    {350, 150, 200, 42}, // ENCDEC
-                    {350, 200, 200, 42}, // MTHSEC
-                    {350, 250, 200, 42}, // USRMGMT
-                    {350, 300, 200, 42}, // AUDSEC
-                    {350, 350, 200, 42}, // LOGMGMT
-                    {350, 400, 200, 42}, // HELP
-                    {350, 460, 200, 42}  // EXIT
+                    {350, 150, 200, 42}, 
+                    {350, 200, 200, 42}, 
+                    {350, 250, 200, 42}, 
+                    {350, 300, 200, 42}, 
+                    {350, 350, 200, 42}, 
+                    {350, 400, 200, 42}, 
+                    {350, 460, 200, 42}  
                 };
 
                 if (GuiButton(buttons[0], "ENCDEC - Encryption"))
@@ -178,7 +178,7 @@ int main(void)
                 DrawText("ENCDEC - Encryption & Decryption",
                         240, 40, 26, DARKGRAY);
 
-                // Input panel
+                
                 GuiPanel((Rectangle){50, 100, 350, 200}, "Input");
                 GuiLabel((Rectangle){60, 140, 80, 20}, "Message:");
                 GuiLabel((Rectangle){60, 205, 80, 20}, "Key:");
@@ -210,7 +210,7 @@ int main(void)
                     else
                         editLetter = false;
                
-                // Output panel
+                
                 GuiPanel((Rectangle){450, 100, 350, 200}, "Output");
                 GuiLabel((Rectangle){460, 140, 80, 20}, "Result:");
                 GuiTextBox(
@@ -220,7 +220,7 @@ int main(void)
 
                 
 
-                // Action buttons (placeholders)
+                
                 if (GuiButton((Rectangle){150, 330, 160, 35}, "To Uppercase"))
                 {
                     struct Message temp = inputText;
@@ -323,25 +323,25 @@ int main(void)
                 {
                     static MathSection currentMath = MTH_NUMBERS;
 
-                    // ---------- INPUT FIX (PUT HERE) ----------
+                    
                     Vector2 mousePoint = GetMousePosition();
 
-                    // ---------- NUMBER TOOLS ----------
+                    
                     static char numberInput[16] = "";
                     static char numberInput2[16] = "";
                     static char numberOutput[64] = "";
-                    static bool editNumber = false;   // ← PUT HERE
+                    static bool editNumber = false;   
                     static bool editNumber2 = false;
 
-                    // ---------- ARRAY TOOLS ----------
+                    
                     static int arraySize = 5;
                     static char array[10][6] = {0};
                     static char arrayResult[64] = "";
-                    static bool editArray[10] = {0};  // ← PUT HERE
+                    static bool editArray[10] = {0};  
 
                     DrawText("MTHSEC - Math & Security Tools", 260, 25, 26, DARKGRAY);
 
-                    // Section selector
+                    
                     if (GuiButton((Rectangle){50, 70, 150, 35}, "Numbers"))
                         currentMath = MTH_NUMBERS;
 
@@ -351,7 +351,7 @@ int main(void)
                     if (GuiButton((Rectangle){390, 70, 150, 35}, "Matrices"))
                         currentMath = MTH_MATRICES;
 
-                    // ---------------- NUMBERS ----------------
+                    
                     if (currentMath == MTH_NUMBERS)
                     {
                         GuiPanel((Rectangle){50, 130, 800, 400}, "Number Tools");
@@ -470,7 +470,7 @@ int main(void)
                         currentScreen = SCREEN_MAIN_MENU;
                     }
 
-                    // ---------------- ARRAYS ----------------
+                    
                     if (currentMath == MTH_ARRAYS)
                     {
                         GuiPanel((Rectangle){50, 130, 520, 320}, "Array Tools");
@@ -488,7 +488,7 @@ int main(void)
                                 if (CheckCollisionPointRec(mousePoint, arrRect) &&
                                     IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                                 {
-                                    // Unfocus others
+                                    
                                     for (int j = 0; j < 10; j++)
                                         editArray[j] = false;
 
@@ -506,7 +506,7 @@ int main(void)
                         {
                             int nums[10] = {0};
 
-                        // Convert text input to integers
+                        
                         for (int i = 0; i < arraySize; i++)
                             nums[i] = atoi(array[i]);
 
@@ -518,7 +518,7 @@ int main(void)
                         {
                             int nums[10] = {0};
 
-                        // Convert text input to integers
+                        
                         for (int i = 0; i < arraySize; i++)
                             nums[i] = atoi(array[i]);
 
@@ -530,7 +530,7 @@ int main(void)
                         {
                             int nums[10] = {0};
 
-                        // Convert text input to integers
+                        
                         for (int i = 0; i < arraySize; i++)
                             nums[i] = atoi(array[i]);
 
@@ -542,7 +542,7 @@ int main(void)
                         {
                             int nums[10] = {0};
 
-                        // Convert text input to integers
+                        
                         for (int i = 0; i < arraySize; i++)
                             nums[i] = atoi(array[i]);
 
@@ -554,13 +554,13 @@ int main(void)
                         {
                            int nums[10] = {0};
 
-                        // Convert text input to integers
+                        
                         for (int i = 0; i < arraySize; i++)
                             nums[i] = atoi(array[i]);
 
                         sortAscending(nums,arraySize);
 
-                        // Convert back to strings
+                        
                         for (int i = 0; i < arraySize; i++)
                             sprintf(array[i], "%d", nums[i]);
 
@@ -572,7 +572,7 @@ int main(void)
                         currentScreen = SCREEN_MAIN_MENU;
                     }
 
-                    // ---------------- MATRICES ----------------
+                    
 
                     if (currentMath == MTH_MATRICES)
                     {
@@ -589,7 +589,7 @@ int main(void)
 
                         DrawText("Matrix Dimensions", 50, 130, 18, DARKGRAY);
 
-                        // -------- Matrix A size --------
+                        
                         GuiLabel((Rectangle){50, 160, 80, 20}, "A Rows:");
                         GuiSpinner((Rectangle){120, 155, 60, 30},
                                 NULL, &rowsA, 1, 5, false);
@@ -598,7 +598,7 @@ int main(void)
                         GuiSpinner((Rectangle){270, 155, 60, 30},
                                 NULL, &colsA, 1, 5, false);
 
-                        // -------- Matrix B size --------
+                        
                         GuiLabel((Rectangle){350, 160, 80, 20}, "B Rows:");
                         GuiSpinner((Rectangle){420, 155, 60, 30},
                                 NULL, &rowsB, 1, 5, false);
@@ -607,7 +607,7 @@ int main(void)
                         GuiSpinner((Rectangle){570, 155, 60, 30},
                                 NULL, &colsB, 1, 5, false);
 
-                        // -------- Matrix A --------
+                        
                         GuiPanel((Rectangle){40, 200, 260, 260}, "Matrix A");
 
                         for (int i = 0; i < rowsA; i++)
@@ -621,7 +621,7 @@ int main(void)
                                     if (CheckCollisionPointRec(mousePoint, rectA) &&
                                         IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                                     {
-                                        // unfocus all first
+                                        
                                         for (int x = 0; x < 5; x++)
                                             for (int y = 0; y < 5; y++)
                                             {
@@ -640,7 +640,7 @@ int main(void)
                             }
                         }
 
-                        // -------- Matrix B --------
+                        
                         GuiPanel((Rectangle){330, 200, 260, 260}, "Matrix B");
 
                         for (int i = 0; i < rowsB; i++)
@@ -654,7 +654,7 @@ int main(void)
                                     if (CheckCollisionPointRec(mousePoint, rectB) &&
                                         IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                                     {
-                                        // unfocus all first
+                                        
                                         for (int x = 0; x < 5; x++)
                                             for (int y = 0; y < 5; y++)
                                             {
@@ -685,7 +685,7 @@ int main(void)
                             for (int j = 0; j < colsB; j++)
                                 matB_.data[i][j] = atoi(matB[i][j]);
 
-                        // -------- Result --------
+                        
                         GuiPanel((Rectangle){620, 200, 260, 260}, "Result");
 
                         for (int i = 0; i < 5; i++)
@@ -695,7 +695,7 @@ int main(void)
                                     matR[i][j]
                                 );
 
-                        // -------- Operations --------
+                        
                         if (GuiButton((Rectangle){180, 480, 100, 35}, "Add"))
                         {
                             addMatrices(matA_, matB_, &matR_ );
@@ -722,7 +722,7 @@ int main(void)
 
                         if (GuiButton((Rectangle){550, 480, 120, 35}, "Is Identity?"))
                         {
-                            if (isIdentity(matA_) == 1) // your function
+                            if (isIdentity(matA_) == 1) 
                                 stringModify(Result, "Yes");
                             else
                                 stringModify(Result, "No");
@@ -730,7 +730,7 @@ int main(void)
 
                         if (GuiButton((Rectangle){50, 480, 120, 35}, "Is Symmetric?"))
                         {
-                            if (isSymmetric(matA_) == 1) // your function
+                            if (isSymmetric(matA_) == 1) 
                                 stringModify(Result, "Yes");
                             else
                                 stringModify(Result, "No");
@@ -745,7 +745,7 @@ int main(void)
                                         temp[i][j] = matA_.data[i][j];
                                     }
                                 }
-                                int det = determinant2x2(temp); // your function
+                                int det = determinant2x2(temp); 
                                 sprintf(Result, "%d", det);
                             }
                             else stringModify(Result, "Matrix isnt 2x2");
@@ -762,13 +762,13 @@ int main(void)
                 {
                     static char username[21] = "";
                     static char password[21] = "";
-                    static int role = 0; // 0: user, 1: admin
+                    static int role = 0; 
                     static char outputText[1024] = "";
                     static char login[100]  = "";
 
                     DrawText("USRMGMT - User Management", 280, 40, 26, DARKGRAY);
 
-                    // Input panel
+                    
                     GuiPanel((Rectangle){50, 100, 350, 220}, "Input");
 
                     GuiLabel((Rectangle){60, 130, 80, 20}, "Username:");
@@ -776,21 +776,21 @@ int main(void)
                     static bool editPassword = false;
                     if (GuiTextBox((Rectangle){60, 155, 330, 30}, username, 20, editUsername)) {
                         editUsername = true;
-                        editPassword = false;  // unfocus other field
+                        editPassword = false;  
                     }
 
                     GuiLabel((Rectangle){60, 195, 80, 20}, "Password:");
                     
                     if (GuiTextBox((Rectangle){60, 220, 330, 30}, password, 20, editPassword)) {
                         editPassword = true;
-                        editUsername = false; // unfocus other field
+                        editUsername = false; 
                     }
 
                     GuiLabel((Rectangle){60, 260, 80, 20}, "Role:");
                     if (GuiButton((Rectangle){60, 285, 100, 30}, role == 0 ? "[X] User" : "[ ] User")) role = 0;
                     if (GuiButton((Rectangle){170, 285, 100, 30}, role == 1 ? "[X] Admin" : "[ ] Admin")) role = 1;
 
-                    // Action buttons column
+                    
                     int buttonX = 420;
                     int buttonY = 150;
                     int buttonW = 200;
@@ -799,7 +799,7 @@ int main(void)
 
                     if (GuiButton((Rectangle){buttonX, buttonY + 0 * buttonSpacing, buttonW, buttonH}, "Add User")) {
                         for (int i = 0; i < MAX_USERS; i++) {
-                            if (users[i].state == 999) { // empty slot
+                            if (users[i].state == 999) { 
                                 stringModifyN(users[i].name, username, 20);
                                 stringModifyN(users[i].password, password, 20);
                                 users[i].role = role;
@@ -848,20 +848,20 @@ int main(void)
                     DrawText(outputText,buttonX,buttonY - 40,20,BLACK);
                     DrawText(login, buttonX+buttonW+20, buttonY + 1*buttonSpacing, 20, BLACK);
 
-                    // Output panel
-                    // -------- Users list (scrollable) --------
+                    
+                    
                     static Vector2 usersScroll = {0, 0};
 
                     static Rectangle usersView = { 0 };
 
-                    // -------- Users list (scrollpanel, raygui 3.0 compatible) --------
+                    
                     Rectangle usersPanel = { 50, 330, 350, 200 };
                     GuiPanel(usersPanel, "Users");
 
-                    // Content height depends on number of users
+                    
                     Rectangle usersContent = { 0, 0, 330, MAX_USERS * 22 };
 
-                    // Scroll panel (fills usersView)
+                    
                     GuiScrollPanel(
                         (Rectangle){ usersPanel.x, usersPanel.y + 25, usersPanel.width, usersPanel.height - 25 },
                         NULL,
@@ -870,7 +870,7 @@ int main(void)
                         &usersView
                     );
 
-                    // Clip drawing to visible area
+                    
                     BeginScissorMode(
                         usersView.x,
                         usersView.y,
@@ -878,7 +878,7 @@ int main(void)
                         usersView.height
                     );
 
-                    // Draw users inside scroll area
+                    
                     int y = usersPanel.y + 30 + usersScroll.y;
 
                     for (int i = 0; i < MAX_USERS; i++)
@@ -902,7 +902,7 @@ int main(void)
 
 
 
-                    // Back button
+                    
                     if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
                         currentScreen = SCREEN_MAIN_MENU;
                 } break;
@@ -915,7 +915,7 @@ int main(void)
 
                     DrawText("AUDSEC - Audit & Security Tools", 260, 25, 26, DARKGRAY);
 
-                    // ---------- TEXT INPUT ----------
+                    
                     static char inputText[128] = "";
                     static bool editInput = false;
 
@@ -934,19 +934,19 @@ int main(void)
                         IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
                         editInput = false;
 
-                    // ---------- BUTTONS ----------
+                    
                     if (GuiButton((Rectangle){50, 150, 200, 35}, "Text Stats")) {
-                        displayTextStats(inputText);          // Your function
+                        displayTextStats(inputText);          
                         stringModify(outputText, "Text stats calculated.\n"); 
 
                     }
 
                     if (GuiButton((Rectangle){270, 150, 200, 35}, "Generate Random Key")) {
-                        generateKey(16, outputText);          // Your function
+                        generateKey(16, outputText);          
                     }
 
                     if (GuiButton((Rectangle){50, 200, 200, 35}, "Generate Random Password")) {
-                        generateRandomPassword(12, outputText);  // Your function
+                        generateRandomPassword(12, outputText);  
 
                     }
 
@@ -959,7 +959,7 @@ int main(void)
                     }
 
                     if (GuiButton((Rectangle){50, 250, 200, 35}, "Top 3 Passwords")) {
-                        top3Passwords(users, MAX_USERS);         // Example, fill outputText inside function
+                        top3Passwords(users, MAX_USERS);         
 
                     }
 

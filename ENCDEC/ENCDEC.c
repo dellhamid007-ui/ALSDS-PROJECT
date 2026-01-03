@@ -13,15 +13,15 @@ int find_newline(char *str) {
         }
         i++;
     }
-    return -1; // No newline found
+    return -1; 
 }
 
-// Then in inputMessage():
+
 void inputMessage(struct Message *m) {
     printf("Enter a message: \t");
     fgets(m->text, 200, stdin);
     
-    // Replace strcspn with custom function
+    
     int newline_pos = find_newline(m->text);
     if (newline_pos != -1) {
         m->text[newline_pos] = '\0';
@@ -40,9 +40,9 @@ void DisplayMessage( struct Message m){
 int isUppercase(char c ){
     if (c  >= 'A' && c <= 'Z')
     {
-        return 1; //true
+        return 1; 
     }else{
-        return 0; //false
+        return 0; 
     }
 
     
@@ -69,9 +69,9 @@ char charLower(char c){
 int isLowercase(char c){
     if (c >= 'a' && c <= 'z')
     {
-        return 1; //true
+        return 1; 
     }else{
-        return 0; // false
+        return 0; 
     }
     
 }
@@ -99,7 +99,7 @@ void toUppercase( struct Message *m){
      {
         if (isLowercase(m->text[i]))
         {
-            m->text[i] = m->text[i] - ('a' - 'A'); //lower case character - 32 gives us an upper case (ASCII table)
+            m->text[i] = m->text[i] - ('a' - 'A'); 
             
         }
         
@@ -164,7 +164,7 @@ void removeSpaces(struct Message *m){
 
 
 
-void encryptCesar(struct Message *m , int key){   //applying a Cesar cipher
+void encryptCesar(struct Message *m , int key){   
     int i;
     
 
@@ -189,7 +189,7 @@ void encryptCesar(struct Message *m , int key){   //applying a Cesar cipher
 
 
 
-void decryptCesar(struct Message *m , int key ){  //possible message decryption based on shift value
+void decryptCesar(struct Message *m , int key ){  
     int i;
     
         for (i = 0; m->text[i] != '\0'; i++)
@@ -212,18 +212,18 @@ void decryptCesar(struct Message *m , int key ){  //possible message decryption 
     
 }
 
-void toHexString(const unsigned char *inputText, int len, char *outputText) { //encryptXOR alone shows garbage characters
+void toHexString(const unsigned char *inputText, int len, char *outputText) { 
     const char hex[] = "0123456789ABCDEF";
     for (size_t i = 0; i < len; i++) {
         outputText[i*2]     = hex[(inputText[i] >> 4) & 0xF];
         outputText[i*2 + 1] = hex[inputText[i] & 0xF];
     }
-    outputText[len*2] = '\0'; // null terminate
+    outputText[len*2] = '\0'; 
 }
 
 
     void encryptXOR(struct Message *m, unsigned char  key){
-        // we need to apply XOR  : 0 and 1 = 1 and if the same then let it be 0
+        
         for (int  i = 0; i < stringLength(m->text); i++)
         {
             m->text[i] ^= (unsigned char) key;
@@ -237,7 +237,7 @@ void toHexString(const unsigned char *inputText, int len, char *outputText) { //
     if (c >= '0' && c <= '9') return c - '0';
     if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
     if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
-    return 0; // fallback
+    return 0; 
 }
 
 
@@ -268,15 +268,15 @@ void encryptSubstitution(struct Message *m , char key[26]){
         if (isLowercase(m->text[i])) {
             int index = m->text[i] - 'a';
             if (index >= 0 && index < 26) {
-                m->text[i] = charLower(key[index]); // maintain lowercase
+                m->text[i] = charLower(key[index]); 
             }
         } else if (isUppercase(m->text[i])) {
             int index = m->text[i] - 'A';
             if (index >= 0 && index < 26) {
-                m->text[i] = charUpper(key[index]); // maintain uppercase
+                m->text[i] = charUpper(key[index]); 
             }
         }
-        // non-alphabetical characters unchanged
+        
     }
 }
 
@@ -316,7 +316,7 @@ int isValidKey(char key[27]){
    int frq[26] ={0};
 
  
-   if (stringLength(key) > 27) // chekc the string length
+   if (stringLength(key) > 27) 
    {
       return 0;
    }
@@ -413,7 +413,7 @@ void frequencyAnalysis(struct Message m){
 }
 double coincidenceIndex(struct Message m){
     int frq[26] = {0};
-    int N = 0; // number of alphabetic letters
+    int N = 0; 
     for (int  i = 0; m.text[i] != '\0'; i++)
     {
         char c = m.text[i];
@@ -432,12 +432,12 @@ double coincidenceIndex(struct Message m){
     }
     if (N <= 1)
     {
-        return 0.0; // avoid division by 0
+        return 0.0; 
     }
     int sum = 0;
     for (int  i = 0; i < 26; i++)
     {
         sum += frq[i] * (frq[i] - 1);
     }
-    return (double)sum / (N * (N - 1)); // coincidence index
+    return (double)sum / (N * (N - 1)); 
 }

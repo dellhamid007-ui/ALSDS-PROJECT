@@ -2,11 +2,11 @@
 #include <string.h>
 #include "USRMGMT.h"
 
-int checkWhitespace(char c){  //to fix usernames not matching
+int checkWhitespace(char c){  
     return(c == ' ' || c == '\t' || c== '\n' || c == '\r' || c == '\f' || c == 'v' );
 }
 
-char* stringModify(char* dest, const char* source){ //rewritten strcpy
+char* stringModify(char* dest, const char* source){ 
     char* og_dest = dest;
 
     while(*source != '\0'){
@@ -37,7 +37,7 @@ char* stringModifyN(char* dest, const char* source, int max_len){
     return og_dest;
 }
 
-int compareString(const char *str1, const char *str2 ){ //rewritten strcmp
+int compareString(const char *str1, const char *str2 ){ 
     while(1){
         while(checkWhitespace(*str1)) str1++;
         while(checkWhitespace(*str2)) str2++;
@@ -92,10 +92,10 @@ void addUser(struct User users[],int n){
 int searchUser(struct User users[], int n, char name[]){
     for(int i = 0; i < n; i++) {
         if (compareString(users[i].name, name) == 0) {
-            return i + 1;  // Found at index i
+            return i + 1;  
         }
     }
-    return -1;  // Not found
+    return -1;  
 }
 
 void deleteUser(struct User users[], int n, char *name){
@@ -224,10 +224,10 @@ int containsDigit(char str[]){
     return 0;
 }
 
-int containsSymbol(char str[]){   //Reused the lookup table approach
+int containsSymbol(char str[]){   
     
     char SpecialList[] = "`~!@#$%%^&*()_+=-|[{}]'/;:.>,<";
-    //creating a lookup table
+    
     int lookup[256] ={0};
 
     for (int i =0; SpecialList[i] !='\0'; i++){
@@ -315,7 +315,7 @@ void userStatistics(struct User users[], int n){
 
 
 
-const char* PERSON_FORMAT_IN = "Name: %s  Password: %s  role: %d  state: %d\n"; //Formats for Reading/writing
+const char* PERSON_FORMAT_IN = "Name: %s  Password: %s  role: %d  state: %d\n"; 
 
 const char* PERSON_FORMAT_OUT = "Name: %s  Password: %s  role: %d  state: %d\n";
 
@@ -353,15 +353,15 @@ void loadUsers(struct User users[], int n){
 
 int count = 0;
     while(count < n) {
-        // Read one user
+        
         int result = fscanf_s(file, PERSON_FORMAT_IN,users[count].name, 20,
                             users[count].password, 20,
                             &users[count].role,
                             &users[count].state);
         
-        // Check what was actually read
+        
         if (result == 4) {
-            // Successfully read all 4 fields
+            
             count++;
         } 
         else if (result == EOF) {
