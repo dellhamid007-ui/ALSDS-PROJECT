@@ -12,6 +12,7 @@
                 "../USRMGMT/USRMGMT.c",
                 "../MTHSEC/MTHSEC.c",
                 "../ENCDEC/ENCDEC.c",
+                "../LOGMGMT/LOGMGMT.c",
                 "-o",
                 "${workspaceFolder}\\alsds.exe",
                 "-I${workspaceFolder}\\USRMGMT",

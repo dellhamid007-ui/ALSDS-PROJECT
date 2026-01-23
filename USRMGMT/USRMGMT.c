@@ -190,7 +190,7 @@ void listAdmins(struct User users[], int n){
     }
 }
 
-int stringLength(char str[]){
+int stringLength(const char str[]){
     int i;
     for(i = 0; str[i] != '\0'; i++);
 
@@ -290,7 +290,7 @@ void userStatistics(struct User users[], int n){
     printf("  Strong passwords: %d (%.1f%%)\n", strongPass, perStrongPass);
     printf("  Weak passwords: %d (%.1f%%)\n\n", actualUsers - strongPass, 100 - perStrongPass);
 
-    FILE* file = fopen("..\\Security Tools Data\\user_stats.dat", "w");
+    FILE* file = fopen("user_stats.dat", "w");
     if (!file) return;
     fprintf(file, "USER STATISTICS REPORT\n");
     fprintf(file, "======================\n\n");
@@ -321,7 +321,7 @@ const char* PERSON_FORMAT_OUT = "Name: %s  Password: %s  role: %d  state: %d\n";
 
 void saveUsers(struct User users[], int n) {
     FILE* file;
-    fopen_s(&file, "..\\Security Tools Data\\User.dat", "w");
+    fopen_s(&file, "User.dat", "w");
     
     if (file == NULL) {
         printf("Cannot open for writing\n");
@@ -342,7 +342,7 @@ void loadUsers(struct User users[], int n){
 
     FILE* file;
 
-    fopen_s(&file, "..\\Security Tools Data\\User.dat", "r"); 
+    fopen_s(&file, "User.dat", "r"); 
 
     if (file ==NULL){
         printf("Cannot Open User.dat");

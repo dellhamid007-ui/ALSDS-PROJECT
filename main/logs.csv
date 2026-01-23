@@ -1,0 +1,12 @@
+user,action,date,time,code
+admin,Normal operation,23/01/2026,23:36,0
+admin,Normal operation,23/01/2026,23:36,0
+system,Suspicious activity,15/01/2026,23:36,1
+system,Suspicious activity,23/01/2026,23:36,1
+system,Suspicious activity,23/01/2026,23:36,1
+system,Suspicious activity,23/01/2026,23:36,1
+auth,Login failure,23/01/2026,23:36,2
+auth,Login failure,23/01/2026,23:36,2
+auth,Login failure,23/01/2026,23:36,2
+auth,Login failure,23/01/2026,23:36,2
+admin,Normal operation,23/01/2026,23:36,0

@@ -13,7 +13,7 @@ struct User{                                                    //Deleted <-> ca
 int passwordScore(char pass[]);
 int textLength(char text[]);
 
-
+char charLower(char c);
 
 int checkWhitespace(char c);
 char* stringModify(char* dest, const char* source);
@@ -31,7 +31,7 @@ void blockUser(struct User users[], int n, char name[]);
 void unblockUser(struct User users[], int n, char name[]);
 void changeRole(struct User users[], int n, char name[], int role);
 void listAdmins(struct User users[], int n); 
-int stringLength(char str[]);
+int stringLength(const char str[]);
 int containsUppercase(char str[]);
 int containsLowercase(char str[]);
 int containsDigit(char str[]);

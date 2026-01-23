@@ -5,9 +5,59 @@
 #include "../AUDSEC/AUDSEC.h"
 #include "../MTHSEC/MTHSEC.h"
 #include "../ENCDEC/ENCDEC.h"
+#include "../LOGMGMT/LOGMGMT.h"
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
+
+
+void stringConcat(char dest[], const char src[]) 
+{
+    int i = 0;
+    int j = 0;
+
+    
+    while (dest[i] != '\0')
+        i++;
+
+    
+    while (src[j] != '\0')
+    {
+        dest[i] = src[j];
+        i++;
+        j++;
+    }
+
+    dest[i] = '\0';
+}
+
+void logsToBuffer(struct Log logs[], int maxLogs, char *buffer)
+{
+    buffer[0] = '\0';
+    char line[256];
+
+    for (int i = 0; i < maxLogs; i++)
+    {
+        if (logs[i].code >= 0)   // valid log
+        {
+            const char *type =
+                (logs[i].code == 0) ? "INFO" :
+                (logs[i].code == 1) ? "WARN" : "ERROR";
+
+            snprintf(line, sizeof(line),
+                "[%s %s] %-5s | %-10s | %s\n",
+                logs[i].date,
+                logs[i].time,
+                type,
+                logs[i].user,
+                logs[i].action
+            );
+
+            stringConcat(buffer, line);
+        }
+    }
+}
+
 
 int MeasureTextRecAlt(Font font, const char* text, float fontSize, float spacing, float wrapWidth) {
     int lines = 1;
@@ -57,25 +107,7 @@ void DrawTextRecAlt(Font font, const char* text, Vector2 pos, float fontSize, fl
 
 
 
-void stringConcat(char dest[], const char src[]) 
-{
-    int i = 0;
-    int j = 0;
 
-    
-    while (dest[i] != '\0')
-        i++;
-
-    
-    while (src[j] != '\0')
-    {
-        dest[i] = src[j];
-        i++;
-        j++;
-    }
-
-    dest[i] = '\0';
-}
 
 typedef enum {
     SCREEN_MAIN_MENU,
@@ -103,6 +135,9 @@ int main(void)
     #define MAX_USERS 100
     struct User users[MAX_USERS];
     loadUsers(users, MAX_USERS);
+
+    struct Log logs[MAX_LOGS];
+    initLogs(logs, MAX_LOGS);
 
 
     const int screenWidth = 900;
@@ -534,7 +569,7 @@ int main(void)
                         for (int i = 0; i < arraySize; i++)
                             nums[i] = atoi(array[i]);
 
-                        int min = maxArray(nums, arraySize);
+                        int min = minArray(nums, arraySize);
                         sprintf(arrayResult,"%d",min);
                         }
 
@@ -1010,13 +1045,180 @@ int main(void)
                 break;
 
             case SCREEN_LOGMGMT:
-                DrawText("LOGMGMT MODULE (placeholder)",
-                         260, 280, 20, GRAY);
-                if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
-                    currentScreen = SCREEN_MAIN_MENU;
-                break;
+                    {
+                        static char logText[4096] = "";
+                        static Vector2 scroll = {0,0};
+                        static char searchText[64] = "";
+                        static bool editSearch = false;
+                        static int filterType = -1; // -1 = All, 0 = INFO, 1 = WARN, 2 = ERROR
+                        static int searchMode = 0; 
+
+                        
+
+                        DrawText("LOGMGMT - Log Management", 280, 40, 26, DARKGRAY);
+
+                        Vector2 mousePoint = GetMousePosition();
+
+                        // --- Search Field ---
+                        GuiLabel((Rectangle){80, 70, 80, 20}, "Search:");
+                        if (GuiTextBox((Rectangle){150, 65, 180, 30}, searchText, 63, editSearch) || editSearch)
+                        {
+                            if (CheckCollisionPointRec(mousePoint, (Rectangle){150, 65, 180, 30}) &&
+                                IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                                editSearch = true;
+                        } else editSearch = false;
+
+                        if (!CheckCollisionPointRec(mousePoint, (Rectangle){150, 65, 180, 30}) &&
+                            IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                            editSearch = false;
+
+                        // --- Filter Buttons ---
+                        if (GuiButton((Rectangle){350, 65, 100, 30}, filterType == -1 ? "[X] All" : "[ ] All")) filterType = -1;
+                        if (GuiButton((Rectangle){460, 65, 80, 30}, filterType == 0 ? "[X] INFO" : "[ ] INFO")) filterType = 0;
+                        if (GuiButton((Rectangle){550, 65, 80, 30}, filterType == 1 ? "[X] WARN" : "[ ] WARN")) filterType = 1;
+                        if (GuiButton((Rectangle){640, 65, 80, 30}, filterType == 2 ? "[X] ERROR" : "[ ] ERROR")) filterType = 2;
+
+                        // --- Add Logs ---
+                        if (GuiButton((Rectangle){80, 110, 180, 35}, "Add INFO Log")) {
+                            addLog(logs, MAX_LOGS, "admin", "Normal operation", 0);
+                        }
+                        if (GuiButton((Rectangle){80, 155, 180, 35}, "Add WARNING Log")) {
+                            addLog(logs, MAX_LOGS, "system", "Suspicious activity", 1);
+                        }
+                        if (GuiButton((Rectangle){80, 200, 180, 35}, "Add ERROR Log")) {
+                            addLog(logs, MAX_LOGS, "auth", "Login failure", 2);
+                        }
+
+                        if (GuiButton((Rectangle){80, 245, 180, 35}, "Clear Logs")) {
+                            initLogs(logs, MAX_LOGS);
+                        }
+
+                        if (GuiButton((Rectangle){80, 290, 180, 35}, "Export Logs")) {
+                            exportLogsCSV(logs, MAX_LOGS);
+                        }
+
+                        if (GuiButton((Rectangle){80, 335, 180, 35}, "Error Rate")) {
+                            float rate = errorRate(logs, MAX_LOGS);
+                            snprintf(logText, sizeof(logText), "Error rate: %.2f%%\n", rate);
+                        }
+
+                        if (GuiButton((Rectangle){80, 380, 180, 35}, "Import Logs")) {
+                            importLogsCSV(logs, MAX_LOGS);
+                        }
+
+                        // --- Logs Panel ---
+                        Rectangle panel = {280, 110, 580, 420};
+                        GuiPanel(panel, "Logs");
+
+                        if (GuiButton((Rectangle){panel.x, panel.y, 100, 25}, "By User")) searchMode = 0;
+                        if (GuiButton((Rectangle){panel.x + 110, panel.y, 100, 25}, "By Date")) searchMode = 1;
+
+                        
+                        static char filteredLogs[4096];
+                        filteredLogs[0] = '\0';
+                        char line[256];
+
+                        for (int i = 0; i < MAX_LOGS; i++) {
+                            if (logs[i].code < 0) continue;
+                            if (filterType != -1 && logs[i].code != filterType) continue;
+
+                            int matches = 0;
+
+                            if (searchMode == 0) { // search by username/action
+                                if (searchText[0] == '\0' || strstr(logs[i].action, searchText) || strstr(logs[i].user, searchText)) {
+                                    matches = 1;
+                                }
+                            } else { // search by date
+                                if (searchText[0] == '\0' || strstr(logs[i].date, searchText)) {
+                                    matches = 1;
+                                }
+                            }
+
+                            if (!matches) continue;
+
+                            const char* typeStr = logs[i].code == 0 ? "INFO" : logs[i].code == 1 ? "WARN" : "ERROR";
+                            snprintf(line, sizeof(line), "[%s %s] %-5s | %-10s | %s\n",
+                                    logs[i].date, logs[i].time, typeStr, logs[i].user, logs[i].action);
+                            stringConcat(filteredLogs, line);
+                        }
+
+                        // Count visible lines in filteredLogs
+                        int visibleLogs = 0;
+                        char* ptr = filteredLogs;
+                        while (*ptr) {
+                            if (*ptr == '\n') visibleLogs++;
+                            ptr++;
+                        }
+
+                        // Each line ~18-20px high (adjust to your font/spacing)
+                        float lineHeight = 18 + 2; // fontSize + spacing
+                        float contentHeight = visibleLogs * lineHeight;
+
+                        // Scroll panel
+                        GuiScrollPanel(
+                            (Rectangle){panel.x, panel.y + 25, panel.width, panel.height - 25},
+                            NULL,
+                            (Rectangle){0, 0, panel.width - 20, contentHeight},
+                            &scroll,
+                            NULL
+                        );
+
+                        // Draw filtered logs line by line
+                        Rectangle clipRect = { panel.x, panel.y + 25, panel.width, panel.height - 25 };
+                        BeginScissorMode(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
+
+                        char* linePtr = filteredLogs;
+                        int lineIndex = 0;
+
+                        while (*linePtr) {
+                            char* nextLine = strchr(linePtr, '\n');
+                            if (nextLine) *nextLine = '\0';  // temporarily terminate the line
+
+                            DrawText(linePtr, panel.x + 10, panel.y + 30 + lineIndex * lineHeight + scroll.y, 16, BLACK);
+
+                            if (nextLine) {
+                                *nextLine = '\n';  // restore newline
+                                linePtr = nextLine + 1;
+                            } else break;
+
+                            lineIndex++;
+                        }
+
+                        EndScissorMode();
+
+
+
+                        if (GuiButton((Rectangle){20, 20, 100, 35}, "< Back"))
+                            currentScreen = SCREEN_MAIN_MENU;
+                    }
+                    break;
+
+
 
             case SCREEN_HELP:
+                    const char* url = "README";
+
+
+                    Vector2 mousePos = GetMousePosition();
+                    Vector2 textSize = MeasureTextEx(GetFontDefault(),url, 18,1);
+
+                    Rectangle link = {420,320,textSize.x,textSize.y};
+
+                    bool textHovered = CheckCollisionPointRec(mousePos, link);
+
+                    Color linkColor;
+                    if(textHovered) linkColor = BLUE;
+                    else linkColor = DARKBLUE;
+
+                    DrawText(url,420,320,18,linkColor);
+
+                    if(textHovered){
+                        if(IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                            OpenURL("https://github.com/dellhamid007-ui/ALSDS-PROJECT/blob/main/README.md");
+                        }
+                    }
+
+                    
                 DrawText("HELP",
                          420, 80, 26, DARKGRAY);
 
@@ -1028,7 +1230,8 @@ int main(void)
                     "- MTHSEC : Math & Security Tools\n"
                     "- USRMGMT: User Management\n"
                     "- AUDSEC : Audit & Security Analysis\n"
-                    "- LOGMGMT: Log Management\n\n"
+                    "- LOGMGMT: Log Management\n"
+                    "- For More Info Refer To :\n\n:" 
                     "Developed by Dellali Abdelhamid and Lehlouh Abdeljalil.",
                     180, 140, 18, GRAY
                 );
