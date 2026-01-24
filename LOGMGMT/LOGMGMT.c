@@ -549,6 +549,7 @@ void exportLogsCSV(struct Log logs[], int n){
     }
     
 }
+fclose(file);
 void importLogsCSV(struct Log logs[], int n){
     //1.Open the file in read mode.
     //2.Skip the header line.
